@@ -790,7 +790,7 @@ int DrawGLScene(void) // draw scene
 		decrunch_flag=false;
 		mod_play=true;
 		#if SNG
-		FMUSIC_PlaySong(mod);
+		char albin = FMUSIC_PlaySong(mod);
 		#endif
 		timer_music=timer_global;
 		}
@@ -2506,6 +2506,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	// load and play music
 	#if SNG
 	FSOUND_File_SetCallbacks(memopen,memclose,memread,memseek,memtell);
+	FSOUND_Init(44100, 0);
 	mod=FMUSIC_LoadSong(MAKEINTRESOURCE(IDR_XM1), NULL);
 	#endif
 	// main loop
