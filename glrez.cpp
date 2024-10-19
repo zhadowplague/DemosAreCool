@@ -101,12 +101,12 @@ float liner_color;			// color increment
 int liner_vtx[8];				// vertex array
 /* text variable				*/
 char *name="Bin - Demos are cool";
-char *txt_dos="\r\r\rThe Bin Demo operating system\rVersion 1.0 No 554\r\rDemos are cool\r\r\r\rF1: display debug infos\r\rF2: wireframe rendering\r\rF3: start now\r\rRETURN: reset debug timer\r\rSPACE: fullscreen/windowed\r\r\rA>_";
+char *txt_dos="\r\r\rThe Bin Demo operating system\rVersion 1.0 No 554\r\rDemos are cool\r\r\r\rF1: display debug infos\r\rF2: wireframe rendering\r\rF3: start now\r\r\r\rSPACE: fullscreen/windowed\r\r\rA>_";
 char *txt_info1="\r\r\r  Bin - \"Demos are cool\"\r\r   A demo inspired by \r\rRazor 1911 - \"Insert no coin\"\r                 \r                 ";
-char *txt_info2="\r\r\r  Text \r                 \r                 ";
-char *txt_info3="\r\r\r  Text \r                 \r                 ";
-char *txt_info4="\r\r\r  Text \r                 \r                 ";
-char *txt_info5="\r\r\r  Text \r                 \r                 ";
+char *txt_info2="\r\r\r  Text2 \r                 \r                 ";
+char *txt_info3="\r\r\r  Text3 \r                 \r                 ";
+char *txt_info4="\r\r\r  Text4 \r                 \r                 ";
+char *txt_info5="\r\r\r  Text5 \r                 \r                 ";
 char *txt_hidden1="\r\r\r      - * -      \r\r Congratulations!\r\r  You just found \r the hidden part!\r\r      - * -      \r                 \r                 ";
 char *txt_hidden2="\r\r\rThanks goes to:    \r\r keops: timer code \r ryg:     kkrunchy \r\r4mat,coda,bubsy for\rfor bpm/sync help! \r                   \r                   ";
 char *txt_hidden3="\r\r\r   - Credits -   \r\r code:    bin+rez \r music:      rez \r\r      - * -      \r                 \r                 ";
@@ -1190,7 +1190,7 @@ int DrawGLScene(void) // draw scene
 		a_x=60.0f+10.0f*angle;
 		a_y=-60.0f+(cube_angle-main_angle)*8.0f+speed_value*180.0f;
 		a_z=0;
-		h=(float)(cube_size*0.1f+(circuit_flag?0.5f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)):0));
+		h=(float)(cube_size*0.1f+(circuit_flag?0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)):0));
 		k=0;
 		for(i=0;i<cube_n;i++)
 			{
@@ -2265,6 +2265,10 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 			if(keys[VK_F1])
 				{
 				debug_flag=!debug_flag;
+				timer_fps_total = 0;
+				timer_fps_min = 32768;
+				timer_fps_max = 0;
+				frame_counter = 0;
 				keys[VK_F1]=false;
 				}
 			if(keys[VK_F2])
@@ -2342,18 +2346,6 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 					keys[VK_BACK]=false;
 					}
 			#endif
-			if(keys[VK_RETURN])
-				{
-				#if DEBUG
-					flash();
-					calc_txt();
-				#endif
-				timer_fps_total=0;
-				timer_fps_min=32768;
-				timer_fps_max=0;
-				frame_counter=0;
-				keys[VK_RETURN]=false;
-				}
 			}
 		}
 	// shutdown
