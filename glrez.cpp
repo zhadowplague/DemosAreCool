@@ -790,7 +790,7 @@ int DrawGLScene(void) // draw scene
 		decrunch_flag=false;
 		mod_play=true;
 		#if SNG
-		char albin = FMUSIC_PlaySong(mod);
+		FMUSIC_PlaySong(mod);
 		#endif
 		timer_music=timer_global;
 		}
@@ -1627,7 +1627,7 @@ int DrawGLScene(void) // draw scene
 		a_z=0;//tekk_zoom_value*4.0f*sinf(main_angle*2.0f);
 		y=0;
 		k=0;
-		float z1,z2;
+		float z1,z2 = 0;
 		float a1=main_angle*0.5f+tekk_zoom_value*4.0f;
 		for(i=0;i<tekk_bar;i++)
 			{
