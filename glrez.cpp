@@ -43,7 +43,7 @@ HINSTANCE	hInstance;		// instance application
 
 int keys[256];					// keyboard array
 int active=true;				// window active flag
-bool fullscreen=DEBUG?false:true;	// fullscreen flag
+bool fullscreen=false;	// fullscreen flag
 bool pause=false;				// pause flag
 float nearplane=0.5f;		// nearplane
 float farplane=1000.0f;	// farplane
@@ -101,13 +101,12 @@ float liner_color;			// color increment
 int liner_vtx[8];				// vertex array
 /* text variable				*/
 char *name="Bin - Demos are cool";
-char *txt_dos="\rLoading and decrunching data...\r\r/\\______  /\\______  ____/\\______     __\r\\____   \\/  \\__   \\/  _ \\____   \\ __/  \\____\r / _/  _/    \\/   /   /  / _/  _// / / / / /\r/  \\   \\  /\\ /   /\\  /  /  \\   \\/ /\\  / / /\r\\__/\\   \\/RTX______\\___/\\__/\\   \\/ / /_/_/\r=====\\___)===\\__)============\\___)=\\/=======\rRAZOR 1911 * SHARPENING THE BLADE SINCE 1985\r\r\rInsert No Coins - FINAL VERSION!\r\r\rhotkeys:\rF1: display debug infos\rF2: wireframe rendering\rF3: enable/disable scanline\rRETURN: reset debug timer\rSPACE: fullscreen/windowed mode\rxxx: hidden part *";
-char *txt_info1="\r\r\r    \"Demos are cool\"\r\r  A demo inspired by \r\r Razor 1911 - \"Insert no coin\"\r                 \r                 ";
-char *txt_info2="\r\r\r   - Credits -   \r\r code:       rez \r logo:     ilkke \r music:  dubmood \r\r hugs to bp,hyde \r keops and 4mat! \r\r      - * -      \r                 \r                 ";
+char *txt_dos="\r\r\rThe Bin Demo operating system\rVersion 1.0 No 554\r\rDemos are cool\r\r\r\rF1: display debug infos\r\rF2: wireframe rendering\r\rF3: start now\r\rRETURN: reset debug timer\r\rSPACE: fullscreen/windowed\r\r\rA>_";
+char *txt_info1="\r\r\r  Bin - \"Demos are cool\"\r\r   A demo inspired by \r\rRazor 1911 - \"Insert no coin\"\r                 \r                 ";
+char *txt_info2="\r\r\r  Text \r                 \r                 ";
 char *txt_info3="\r\r\r  Text \r                 \r                 ";
 char *txt_info4="\r\r\r  Text \r                 \r                 ";
 char *txt_info5="\r\r\r  Text \r                 \r                 ";
-char *txt_info6="\r\r\r   Ho, you are   \r   still here?   \r\r   Let it loop   \r  one more time  \r                 \r                 ";
 char *txt_hidden1="\r\r\r      - * -      \r\r Congratulations!\r\r  You just found \r the hidden part!\r\r      - * -      \r                 \r                 ";
 char *txt_hidden2="\r\r\rThanks goes to:    \r\r keops: timer code \r ryg:     kkrunchy \r\r4mat,coda,bubsy for\rfor bpm/sync help! \r                   \r                   ";
 char *txt_hidden3="\r\r\r   - Credits -   \r\r code:    bin+rez \r music:      rez \r\r      - * -      \r                 \r                 ";
@@ -227,19 +226,13 @@ bool flash_flag=false;	// flag
 float flash_angle=0;		// angle
 /* dos variable					*/
 bool dos_flag=DEBUG?false:true;// flag
-float dos_time=DEBUG?0:1.0f;
+bool skip_dos=false;
+float dos_time=DEBUG?0:6.0f;
 int dos_w;							// width
 int dos_h;							// height
 int dos_vtx[8];					// vertex array
 int shell_vtx[8];				// vertex array
 float shell_tex[]={1.0f,0.9453125f,1.0f,1.0f,0.75f,1.0f,0.75f,0.9453125f};
-/* decrunch variable		*/
-bool decrunch_flag=false;// flag
-int decrunch_h=0;				// height
-int decrunch_y=0;				// top
-int decrunch_split=0;		// bar split random
-int decrunch_split_w;		// bar split w
-float decrunch_time=DEBUG?0:dos_time+2.0f;
 /* debug variable				*/
 bool debug_flag=DEBUG?true:false;// flag
 bool debug_test=true;		// test
@@ -755,16 +748,10 @@ int DrawGLScene(void) // draw scene
 	timer_fps_average=timer_fps_total/frame_counter;
 	if(timer_fps<timer_fps_min) timer_fps_min=timer_fps;
 	if(timer_fps>timer_fps_max) timer_fps_max=timer_fps;
-	// start decrunch
-	if(!mod_play&&timer_global>dos_time)
-		{
-		decrunch_flag=true;
-		}
 	// start music
-	if(!mod_play&&timer_global>decrunch_time)
+	if(!mod_play&&(timer_global>dos_time||skip_dos))
 		{
 		dos_flag=false;
-		decrunch_flag=false;
 		mod_play=true;
 		#if SNG
 		FMUSIC_PlaySong(mod);
@@ -821,7 +808,6 @@ int DrawGLScene(void) // draw scene
 						switch(mod_row)
 							{
 							case 0:
-								decrunch_flag=false;
 								intro_flag=true;
 								glenz_flag=true;
 								flash();
@@ -875,11 +861,13 @@ int DrawGLScene(void) // draw scene
 							circuit_flag=false;
 							intro_flag=false;
 							move_flag=false;
+							liner_flag = true;
+							txt = txt_info1;
 							speed_flag=false;
 							speed_value=1.0f;
 							end_flag=false;
 							glenz_flag=false;
-							liner_flag=false;
+							calc_txt();
 							flash();
 							fov_anim();
 							bgd_base_r=0.125f;
@@ -906,7 +894,7 @@ int DrawGLScene(void) // draw scene
 							intro_radius=3.0f;
 							liner_flag=true;
 							speed_flag=false;
-							txt=(loop_counter<1)?txt_info1:txt_info6;
+							txt=txt_info2;
 							calc_txt();
 							flash();
 							if(loop_counter>0) fov_anim();
@@ -936,7 +924,7 @@ int DrawGLScene(void) // draw scene
 							tunnel_angle=main_angle;
 							glenz_flag=false;
 							liner_flag=true;
-							txt=txt_info2;
+							txt=txt_info3;
 							calc_txt();
 							flash();
 							for(i=0;i<tunnel_n1;i++)
@@ -974,7 +962,7 @@ int DrawGLScene(void) // draw scene
 							intro_radius=1.0f;
 							liner_flag=true;
 							speed_flag=false;
-							txt=txt_info3;
+							txt=txt_info4;
 							calc_txt();
 							flash();
 							bgd_base_r=0.25f;
@@ -992,7 +980,7 @@ int DrawGLScene(void) // draw scene
 					case 20:
 						if(mod_row==0)
 							{
-							txt=txt_info4;
+							txt=txt_info5;
 							logo_flag=true;
 							greeting_flag=false;
 							vote_flag=true;
@@ -1023,9 +1011,6 @@ int DrawGLScene(void) // draw scene
 							glenz_flag=true;
 							intro_radius=1.0f;
 							end_flag=true;
-							liner_flag=true;
-							txt=txt_info5;
-							calc_txt();
 							flash();
 							fov_anim();
 							bgd_base_r=0.3f;
@@ -1779,42 +1764,13 @@ int DrawGLScene(void) // draw scene
 				}
 			}
 		}
-	// draw decrunch
-	if(decrunch_flag)
-		{
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_BLEND);
-		glColor3f((float)(CR*(128+rand()%128)),(float)(CR*(128+rand()%128)),(float)(CR*(128+rand()%128)));
-		for(i=0;i<screen_h;i++)
-			{
-			decrunch_y=i*decrunch_h;
-			decrunch_split=rand()%4;
-			if(decrunch_split==0)
-				{
-				if(rand()%4==0) glColor3f((float)(CR*(128+rand()%128)),(float)(CR*(128+rand()%128)),(float)(CR*(128+rand()%128)));
-				decrunch_split_w=rand()%(screen_w/16)*16;
-				rectangle(0,decrunch_y-decrunch_h,decrunch_split_w,decrunch_h);
-				if(rand()%8==0) glColor3f((float)(CR*(128+rand()%128)),(float)(CR*(128+rand()%128)),(float)(CR*(128+rand()%128)));
-				rectangle(decrunch_split_w,decrunch_y-decrunch_h,screen_w-decrunch_split_w,decrunch_h);
-				}
-			else
-				{
-				rectangle(0,decrunch_y-decrunch_h,screen_w,decrunch_h);
-				}
-			}
-		glEnable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);
-		}
 	// draw dos
 	if(dos_flag)
 		{
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_BLEND);
-		if(!decrunch_flag)
-			{
-			glColor3f((float)(CR*0),(float)(CR*85),(float)(CR*170));
-			rectangle(0,0,screen_w,screen_h);
-			}
+		glColor3f(0, 0, 0);
+		rectangle(0,0,screen_w,screen_h);
 		glColor3f(1.0f,1.0f,1.0f);
 		rectangle(0,0,screen_w-(int)(26.5f*ratio_2d),10*ratio_2d);
 		rectangle(screen_w-(int)(25.5f*ratio_2d),0,11*ratio_2d,10*ratio_2d);
@@ -1823,7 +1779,7 @@ int DrawGLScene(void) // draw scene
 		rectangle(0,10*ratio_2d,1*ratio_2d,screen_h-10*ratio_2d);
 		rectangle(screen_w-1*ratio_2d,10*ratio_2d,1*ratio_2d,screen_h-10*ratio_2d);
 		rectangle(1*ratio_2d,screen_h-1*ratio_2d,screen_w-2*ratio_2d,1*ratio_2d);
-		glColor3f((float)(CR*0),(float)(CR*85),(float)(CR*170));
+		glColor3f(0,0,0);
 		rectangle((int)(34.5f*ratio_2d),2*ratio_2d,screen_w-(int)(62.5f*ratio_2d),2*ratio_2d);
 		rectangle((int)(34.5f*ratio_2d),6*ratio_2d,screen_w-(int)(62.5f*ratio_2d),2*ratio_2d);
 		rectangle(screen_w-(int)(24.5f*ratio_2d),1*ratio_2d,7*ratio_2d,6*ratio_2d);
@@ -1832,14 +1788,15 @@ int DrawGLScene(void) // draw scene
 		glColor3f(0,0,0);
 		rectangle(screen_w-(int)(22.5f*ratio_2d),3*ratio_2d,7*ratio_2d,6*ratio_2d);
 		rectangle(screen_w-(int)(12.5f*ratio_2d),1*ratio_2d,7*ratio_2d,6*ratio_2d);
-		glColor3f((float)(CR*0),(float)(CR*85),(float)(CR*170));
+		glColor3f(0, 0, 0);
 		rectangle(screen_w-(int)(10.5f*ratio_2d),2*ratio_2d,7*ratio_2d,7*ratio_2d);
 		glColor3f(1.0f,1.0f,1.0f);
 		rectangle(screen_w-(int)(9.5f*ratio_2d),3*ratio_2d,5*ratio_2d,5*ratio_2d);
 		rectangle(screen_w-8*ratio_2d,screen_h-9*ratio_2d,7*ratio_2d,8*ratio_2d);
-		glColor3f((float)(CR*0),(float)(CR*85),(float)(CR*170));
+		glColor3f(0, 0, 0);
 		rectangle(screen_w-7*ratio_2d,screen_h-8*ratio_2d,6*ratio_2d,7*ratio_2d);
 		glColor3f(1.0f,1.0f,1.0f);
+		rectangle(12*ratio_2d,screen_h-78*ratio_2d,60*ratio_2d*timer_global,7*ratio_2d);
 		rectangle(screen_w-4*ratio_2d,screen_h-8*ratio_2d,4*ratio_2d,2*ratio_2d);
 		rectangle(screen_w-7*ratio_2d,screen_h-5*ratio_2d,2*ratio_2d,5*ratio_2d);
 		rectangle(screen_w-6*ratio_2d,screen_h-7*ratio_2d,1*ratio_2d,1*ratio_2d);
@@ -1995,7 +1952,6 @@ int CreateGLWindow(char* title)
 	screen_h=fullscreen?h:window_h;
 	timer_fps_min=32768;
 	timer_fps_max=0;
-	decrunch_h=(int)(screen_h*0.01f);
 	ratio_2d=(int)(screen_w/400);
 	logo_w=16*ratio_2d;
 	logo_h=16*ratio_2d;
@@ -2272,10 +2228,6 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	{
 	MSG msg;																		// windows message structure
 	done=false;																	// exit loop
-	// ask for fullscreen mode
-	#if !DEBUG
-	fullscreen=(MessageBox(NULL,"fullscreen mode?",name,MB_YESNO|MB_ICONQUESTION)==IDYES)?true:false;
-	#endif
 	// create openGL window
 	if(!CreateGLWindow(name)) return 0;					// quit if window not created
 	// load and play music
@@ -2323,6 +2275,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				}
 			if(keys[VK_F3])
 				{
+				skip_dos=true;
 				keys[VK_F3]=false;
 				}
 			if(keys[VK_F12])
@@ -2350,7 +2303,6 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 					star_z[i]=-(rand()%(int)(hidden_radius*100))*0.01f;
 					}
 				loop_counter=0;
-				decrunch_time=timer_global+0.5f;
 				#if SNG
 				mod_play=false;
 				mod_ord=-1;
