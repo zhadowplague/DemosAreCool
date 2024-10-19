@@ -149,19 +149,6 @@ int loop_h;							// height
 int loop_margin;				// margin
 int loop_vtx[8];				// vertex array
 float loop_tex[]={0.46484375f,0.76953125f,0.25f,0.76953125f,0.25f,0.75f,0.46484375f,0.75f};
-/* razor variable				*/
-bool razor_flag=false;	// flag
-int razor_n=13;					// divide number
-int razor_y;						// position y
-int razor_w;						// width
-int razor_h;						// height
-int razor_margin;				// margin
-int razor_radius;				// synchro radius
-int razor_b_vtx[24];		// back vertex array
-float razor_b_col[]={0,0,0,1.0f,0,0,0,1.0f,0.125f,0,0.25f,0.25f,0.125f,0,0.25f,0.25f,0.125f,0,0.25f,0.25f,0.125f,0,0.25f,0.25f,0.25f,0,0.125f,0.25f,0.25f,0,0.125f,0.25f,0.25f,0,0.125f,0.25f,0.25f,0,0.125f,0.25f,0,0,0,1.0f,0,0,0,1.0f};
-float razor_vtx[104];		// vertex array
-float razor_tex[104];		// texture array
-float razor_col[156];		// color array
 /* glenz variable				*/
 bool glenz_flag=false;	// flag
 float glenz_vtx[432];		// vertex array
@@ -261,15 +248,7 @@ bool debug_test=true;		// test
 int debug_w;						// width
 int debug_h;						// height
 int debug_vtx[8];				// vertex array
-/* border variable			*/
-bool border1_flag=false;// flag
-bool border2_flag=false;// flag
-int border_h;						// height
-int border_vtx[16];			// vertex array
-float border_co1[]={0,0,0,0.125f,0,0,0,0.125f,0,0,0,1.0f,0,0,0,1.0f,0,0,0,1.0f,0,0,0,1.0f,0,0,0,0.125f,0,0,0,0.125f};
-float border_co2[]={0.125f,0.125f,0.375f,0.125f,0.125f,0.125f,0.375f,0.125f,0,0,0,1.0f,0,0,0,1.0f,0,0,0,1.0f,0,0,0,1.0f,0.125f,0.125f,0.375f,0.125f,0.125f,0.125f,0.375f,0.125f};
-/* scanline variable		*/
-bool scanline_flag=true;// flag
+/* flash variable		*/
 int scanline_vtx[8];		// vertex array
 float scanline_tex[8];	// texture array
 /* synchro variable			*/
@@ -893,9 +872,6 @@ int DrawGLScene(void) // draw scene
 					case 4:
 						if(mod_row==0)
 							{
-							border1_flag=true;
-							border2_flag=false;
-							razor_flag=false;
 							cube_flag=true;
 							cube_angle=main_angle;
 							circuit_flag=false;
@@ -924,10 +900,7 @@ int DrawGLScene(void) // draw scene
 						if(mod_row==0)
 							{
 							loop_counter++; 
-							border1_flag=false;
-							border2_flag=true;
 							logo_flag=true;
-							razor_flag=true;
 							tekk_flag=false;
 							cube_flag=true;
 							circuit_flag=true;
@@ -958,10 +931,7 @@ int DrawGLScene(void) // draw scene
 					case 12:
 						if(mod_row==0)
 							{
-							border1_flag=true;
-							border2_flag=false;
 							logo_flag=true;
-							razor_flag=false;
 							cube_flag=false;
 							circuit_flag=false;
 							tunnel_flag=true;
@@ -999,10 +969,7 @@ int DrawGLScene(void) // draw scene
 					case 16:
 						if(mod_row==0)
 							{
-							border1_flag=false;
-							border2_flag=true;
 							logo_flag=true;
-							razor_flag=false;
 							tunnel_flag=false;
 							greeting_flag=true;
 							glenz_flag=true;
@@ -1028,9 +995,7 @@ int DrawGLScene(void) // draw scene
 						if(mod_row==0)
 							{
 							txt=txt_info4;
-							border2_flag=true;
 							logo_flag=true;
-							razor_flag=true;
 							greeting_flag=false;
 							vote_flag=true;
 							heart_flag=true;
@@ -1054,9 +1019,7 @@ int DrawGLScene(void) // draw scene
 					case 24:
 						if(mod_row==0)
 							{
-							border2_flag=true;
 							logo_flag=true;
-							razor_flag=false;
 							vote_flag=false;
 							heart_flag=false;
 							glenz_flag=true;
@@ -1093,10 +1056,7 @@ int DrawGLScene(void) // draw scene
 					case 28:
 						if(mod_row==0)
 							{
-							border1_flag=true;
-							border2_flag=false;
 							logo_flag=true;
-							razor_flag=true;
 							glenz_flag=false;
 							end_flag=false;
 							tekk_flag=true;
@@ -1133,9 +1093,7 @@ int DrawGLScene(void) // draw scene
 					mod_ord++; // if(mod_ord>4) mod_ord=0;
 					if(mod_ord==0)
 						{
-						border2_flag=true;
 						logo_flag=true;
-						razor_flag=true;
 						liner_flag=true;
 						hidden_flag=true;
 						flash();
@@ -1785,19 +1743,6 @@ int DrawGLScene(void) // draw scene
 		glDisableClientState(GL_COLOR_ARRAY);
 		glEnable(GL_TEXTURE_2D);
 		}
-	// draw border
-	if(border1_flag||border2_flag)
-		{
-		glDisable(GL_TEXTURE_2D);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glLoadIdentity();
-		glBlendFunc(GL_SRC_COLOR,GL_SRC_ALPHA);
-		glVertexPointer(2,GL_INT,0,border_vtx);
-		glColorPointer(4,GL_FLOAT,0,border1_flag?border_co1:border_co2);
-		glDrawArrays(GL_QUADS,0,8);
-		glDisableClientState(GL_COLOR_ARRAY);
-		glEnable(GL_TEXTURE_2D);
-		}
 	// draw liner
 	if(liner_flag)
 		{
@@ -1864,86 +1809,6 @@ int DrawGLScene(void) // draw scene
 				glDrawArrays(GL_QUADS,0,8);
 				}
 			}
-		glDisableClientState(GL_COLOR_ARRAY);
-		}
-	// draw razor
-	if(razor_flag)
-		{
-		glEnableClientState(GL_COLOR_ARRAY);
-		glBlendFunc(GL_SRC_COLOR,GL_SRC_ALPHA);
-		if(!tekk_flag&&!hidden_flag)
-			{
-			glLoadIdentity();
-			glVertexPointer(2,GL_INT,0,razor_b_vtx);
-			glColorPointer(4,GL_FLOAT,0,razor_b_col);
-			glDrawArrays(GL_QUADS,0,8);
-			}
-		glLoadIdentity();
-		glTranslated(screen_w/2-(razor_w-razor_w/razor_n/2)/2-ratio_2d,(!tekk_flag?razor_y:screen_h/2),0);
-		c=0.25f*cosf(main_angle);
-		float x1=0;
-		float x2=0;
-		float x3=0;
-		float x4=0;
-		for(i=0;i<razor_n;i++)
-			{
-			if(i>0) x1+=(i!=razor_n/2+1)?razor_w/razor_n:razor_w/razor_n/3*2;
-			x2+=(i!=razor_n/2)?razor_w/razor_n:razor_w/razor_n/3*2;
-			x3=0;
-			x4=0;
-			if(synchro_flag)
-				{
-				angle=360.0f/razor_n*PID*3.375f;
-				x3=synchro_value*razor_radius*cosf((main_angle-synchro_angle)*12.0f+angle*i);
-				x4=synchro_value*razor_radius*cosf((main_angle-synchro_angle)*12.0f+angle*(i+1));
-				}
-			x=1.0f/razor_n;
-			float t_x1=(i<razor_n/2+1)?x*i:x*(i-razor_n/2-1);
-			float t_x2=(i<razor_n/2+1)?x*(i+1):x*(i+1-razor_n/2-1);
-			float t_y1=(i<razor_n/2+1)?0.5f:0.25f;
-			float t_y2=(i<razor_n/2+1)?0.25f:0.0f;
-			if(i==razor_n/2)
-				{
-				t_x1=0.475f;
-				t_x2=0.5f;
-				}
-			float c1=0.375f/razor_radius*x3;
-			float c2=0.375f/razor_radius*x4;
-			k=i*12;
-			razor_col[k   ]=0.75f+0.25f/razor_n*i-c1;
-			razor_col[k+ 1]=0.875f-c1;
-			razor_col[k+ 2]=1.0f-0.25f/razor_n*i-c1;
-			razor_col[k+ 3]=0.625f+0.375f/razor_n*i-c1;
-			razor_col[k+ 4]=0.875f-c1;
-			razor_col[k+ 5]=1.0f-0.375f/razor_n*i-c1;
-			razor_col[k+ 6]=0.625f+0.375f/razor_n*(i+1)-c2;
-			razor_col[k+ 7]=0.875f-c2;
-			razor_col[k+ 8]=1.0f-0.375f/razor_n*(i+1)-c2;
-			razor_col[k+ 9]=0.75f+0.25f/razor_n*(i+1)-c2;
-			razor_col[k+10]=0.875f-c2;
-			razor_col[k+11]=1.0f-0.25f/razor_n*(i+1)-c2;
-			k=i*8;
-			razor_tex[k  ]=t_x1;
-			razor_tex[k+1]=t_y1;
-			razor_tex[k+2]=t_x1;
-			razor_tex[k+3]=t_y2;
-			razor_tex[k+4]=t_x2;
-			razor_tex[k+5]=t_y2;
-			razor_tex[k+6]=t_x2;
-			razor_tex[k+7]=t_y1;
-			razor_vtx[k  ]=x1+x3;
-			razor_vtx[k+1]=-razor_h-x3*0.5f;
-			razor_vtx[k+2]=x1+x3;
-			razor_vtx[k+3]=razor_h+x3*0.5f;
-			razor_vtx[k+4]=x2+x4;
-			razor_vtx[k+5]=razor_h+x4*0.5f;
-			razor_vtx[k+6]=x2+x4;
-			razor_vtx[k+7]=-razor_h-x4*0.5f;
-			}
-		glVertexPointer(2,GL_FLOAT,0,razor_vtx);
-		glTexCoordPointer(2,GL_FLOAT,0,razor_tex);
-		glColorPointer(3,GL_FLOAT,0,razor_col);
-		glDrawArrays(GL_QUADS,0,razor_n*4);
 		glDisableClientState(GL_COLOR_ARRAY);
 		}
 	// draw decrunch
@@ -2052,10 +1917,10 @@ int DrawGLScene(void) // draw scene
 	if(flash_flag)
 		{
 		glDisable(GL_TEXTURE_2D);
-		glBlendFunc(GL_ONE,GL_ONE);
+		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 		angle=(main_angle-flash_angle)*1.0f;
 		if(angle>90.0f*PID) flash_flag=false;
-		c=1.0f-sinf(angle);
+		c=sinf(angle);
 		glColor3f(c,c,c);
 		glLoadIdentity();
 		glVertexPointer(2,GL_INT,0,scanline_vtx);
@@ -2127,16 +1992,6 @@ int DrawGLScene(void) // draw scene
 				}
 			}
 		}
-	// draw scanline
-	if(scanline_flag)
-		{
-		glLoadIdentity();
-		glBlendFunc(GL_DST_COLOR,GL_SRC_ALPHA);
-		glColor4f(1.0f,1.0f,1.0f,0.625f);
-		glVertexPointer(2,GL_INT,0,scanline_vtx);
-		glTexCoordPointer(2,GL_FLOAT,0,scanline_tex);
-		glDrawArrays(GL_QUADS,0,4);
-		}
 	return true;
 	}
 
@@ -2172,23 +2027,6 @@ int CreateGLWindow(char* title)
 	screen_h=fullscreen?h:window_h;
 	timer_fps_min=32768;
 	timer_fps_max=0;
-	border_h=screen_h/4;
-	border_vtx[ 0]=screen_w;
-	border_vtx[ 1]=0;
-	border_vtx[ 2]=0;
-	border_vtx[ 3]=0;
-	border_vtx[ 4]=0;
-	border_vtx[ 5]=border_h;
-	border_vtx[ 6]=screen_w;
-	border_vtx[ 7]=border_h;
-	border_vtx[ 8]=screen_w;
-	border_vtx[ 9]=screen_h-border_h;
-	border_vtx[10]=0;
-	border_vtx[11]=screen_h-border_h;
-	border_vtx[12]=0;
-	border_vtx[13]=screen_h;
-	border_vtx[14]=screen_w;
-	border_vtx[15]=screen_h;
 	decrunch_h=(int)(screen_h*0.01f);
 	ratio_2d=(int)(screen_w/400);
 	logo_w=16*ratio_2d;
@@ -2223,37 +2061,6 @@ int CreateGLWindow(char* title)
 	liner_vtx[5]=(int)(-liner_h*1.5f);
 	liner_vtx[6]=-liner_w;
 	liner_vtx[7]=-liner_h;
-	razor_margin=8*ratio_2d;
-	razor_radius=8*ratio_2d;
-	razor_w=256*ratio_2d;
-	razor_h=32*ratio_2d;
-	razor_y=razor_h-razor_margin;
-	int y1=razor_y-razor_margin+razor_h;
-	int y2=razor_y+razor_margin-razor_h;
-	razor_b_vtx[ 0]=0;
-	razor_b_vtx[ 1]=y1+liner_w;
-	razor_b_vtx[ 2]=screen_w;
-	razor_b_vtx[ 3]=y1+liner_w;
-	razor_b_vtx[ 4]=screen_w;
-	razor_b_vtx[ 5]=y1;
-	razor_b_vtx[ 6]=0;
-	razor_b_vtx[ 7]=y1;
-	razor_b_vtx[ 8]=0;
-	razor_b_vtx[ 9]=y1;
-	razor_b_vtx[10]=screen_w;
-	razor_b_vtx[11]=y1;
-	razor_b_vtx[12]=screen_w;
-	razor_b_vtx[13]=y2;
-	razor_b_vtx[14]=0;
-	razor_b_vtx[15]=y2;
-	razor_b_vtx[16]=0;
-	razor_b_vtx[17]=y2;
-	razor_b_vtx[18]=screen_w;
-	razor_b_vtx[19]=y2;
-	razor_b_vtx[20]=screen_w;
-	razor_b_vtx[21]=y2-liner_w;
-	razor_b_vtx[22]=0;
-	razor_b_vtx[23]=y2-liner_w;
 	copper();
 	youtube_vtx[ 0]=-liner_w;
 	youtube_vtx[ 1]=(int)(liner_h*1.5f);
@@ -2548,12 +2355,10 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				}
 			if(keys[VK_F3])
 				{
-				scanline_flag=!scanline_flag;
 				keys[VK_F3]=false;
 				}
 			if(keys[VK_F12])
 				{
-				border1_flag=false;
 				intro_flag=false;
 				cube_flag=false;
 				circuit_flag=false;
