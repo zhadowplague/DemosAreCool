@@ -100,20 +100,18 @@ int liner_h;						// height
 float liner_color;			// color increment
 int liner_vtx[8];				// vertex array
 /* text variable				*/
-char *name="Razor 1911 - Insert No Coins";
+char *name="Bin - Demos are cool";
 char *txt_dos="\rLoading and decrunching data...\r\r/\\______  /\\______  ____/\\______     __\r\\____   \\/  \\__   \\/  _ \\____   \\ __/  \\____\r / _/  _/    \\/   /   /  / _/  _// / / / / /\r/  \\   \\  /\\ /   /\\  /  /  \\   \\/ /\\  / / /\r\\__/\\   \\/RTX______\\___/\\__/\\   \\/ / /_/_/\r=====\\___)===\\__)============\\___)=\\/=======\rRAZOR 1911 * SHARPENING THE BLADE SINCE 1985\r\r\rInsert No Coins - FINAL VERSION!\r\r\rhotkeys:\rF1: display debug infos\rF2: wireframe rendering\rF3: enable/disable scanline\rRETURN: reset debug timer\rSPACE: fullscreen/windowed mode\rxxx: hidden part *";
-char *txt_info1="\r\r\r We are proud to \r   present you   \r\r\"Insert No Coins\"\r\r  A new release  \r  by Razor 1911  \r                 \r                 ";
+char *txt_info1="\r\r\r    \"Demos are cool\"\r\r  A demo inspired by \r\r Razor 1911 - \"Insert no coin\"\r                 \r                 ";
 char *txt_info2="\r\r\r   - Credits -   \r\r code:       rez \r logo:     ilkke \r music:  dubmood \r\r hugs to bp,hyde \r keops and 4mat! \r\r      - * -      \r                 \r                 ";
-char *txt_info3="\r\r\r  - Greetings -  \r\r Ate Bit/Equinox \r Andromeda/Live! \r D-bug/F4CG/TRSi \r Vision  Factory \r TBL/Paradox/Orb \r FRequency/TPOLM \r Melon./Bomb!/FR \r\r      - * -      \r                 \r                 ";
-char *txt_info4="\r\r\r  Be oldsk00l!  \r\r  Show us that  \rnamevoting still\r works in 2010! \r\r                \r                ";
-char *txt_info5="\r\r\r      - * -      \r\r   You finally   \r   reached the   \r   end of this   \r   small intro   \r\r      - * -      \r                 \r                 ";
+char *txt_info3="\r\r\r  Text \r                 \r                 ";
+char *txt_info4="\r\r\r  Text \r                 \r                 ";
+char *txt_info5="\r\r\r  Text \r                 \r                 ";
 char *txt_info6="\r\r\r   Ho, you are   \r   still here?   \r\r   Let it loop   \r  one more time  \r                 \r                 ";
-char *txt_info7=" our intro runs better in realtime than on youtube";
 char *txt_hidden1="\r\r\r      - * -      \r\r Congratulations!\r\r  You just found \r the hidden part!\r\r      - * -      \r                 \r                 ";
 char *txt_hidden2="\r\r\rThanks goes to:    \r\r keops: timer code \r ryg:     kkrunchy \r\r4mat,coda,bubsy for\rfor bpm/sync help! \r                   \r                   ";
-char *txt_hidden3="\r\r\r   - Credits -   \r\r code:       rez \r logo:     ilkke \r music:      rez \r\r      - * -      \r                 \r                 ";
-char *txt_hidden4="\r\r\r      - * -      \r\r   Lovings to    \r Maali/ShitRow!  \r\r      - * -      \r                 \r                 ";
-char *txt_happycube="\r       _____\r      /    /|\r     +----+ |\r     | :D | |\r     +----+/ \rHappycube is Happy!\r                   ";
+char *txt_hidden3="\r\r\r   - Credits -   \r\r code:    bin+rez \r music:      rez \r\r      - * -      \r                 \r                 ";
+char *txt_hidden4="\r\r\r  Text \r                 \r                 ";
 char *txt=txt_dos;
 /* cube variable				*/
 bool cube_flag=false;		// flag
@@ -1061,7 +1059,6 @@ int DrawGLScene(void) // draw scene
 							end_flag=false;
 							tekk_flag=true;
 							liner_flag=false;
-							txt=txt_info7;
 							calc_txt();
 							flash();
 							bgd_base_r=0.25f;
@@ -1781,35 +1778,6 @@ int DrawGLScene(void) // draw scene
 				y=screen_h*0.5f-(liner_n-1)*liner_h*1.25f+liner_line*liner_h*2.5f;
 				}
 			}
-		}
-	if(tekk_flag)
-		{
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(2,GL_INT,0,youtube_vtx);
-		x=(screen_w-liner_max*liner_w*1.5f)*0.5f;
-		y=screen_h*0.5f+liner_h*7.0f;
-		j=0;
-		for(i=0;i<liner_length;i++)
-			{
-			j++;
-			car=(byte)txt[i];
-			if(car>32)
-				{
-				angle=main_angle*2.0f+j*PID*12.0f;
-				r=0.5f+0.5f*cosf(j*0.125f+main_angle*2.0f);
-				b=0.5f+0.5f*sinf(j*0.125f+main_angle*2.0f);
-				float l_w=(car%16)*0.03125f;
-				float l_h=(car-car%16)*0.001953125f;
-				float texture[]={l_w,0.75f-l_h-0.03125f,l_w+0.015625f,0.75f-l_h-0.03125f,l_w+0.015625f,0.75f-l_h-0.00001f,l_w,0.75f-l_h-0.00001f,l_w+0.015625f,0.75f-l_h-0.03125f,l_w+0.03125f,0.75f-l_h-0.03125f,l_w+0.03125f,0.75f-l_h-0.00001f,l_w+0.015625f,0.75f-l_h-0.00001f};
-				float color[]={r*0.375f,0.1875f,b*0.375f,r,0.5f,b,r,0.5f,b,r*0.375f,0.1875f,b*0.375f,r,0.5f,b,r,0.5f,b,r,0.5f,b,r,0.5f,b};
-				glTexCoordPointer(2,GL_FLOAT,0,texture);
-				glColorPointer(3,GL_FLOAT,0,color);
-				glLoadIdentity();
-				glTranslatef(x+i*liner_w*1.5f,y+(float)fabs(liner_h*synchro_value*cosf((main_angle-synchro_angle)*12.0f)),0);
-				glDrawArrays(GL_QUADS,0,8);
-				}
-			}
-		glDisableClientState(GL_COLOR_ARRAY);
 		}
 	// draw decrunch
 	if(decrunch_flag)
