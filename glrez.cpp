@@ -193,11 +193,6 @@ int vote_n1=48;					// number x
 int vote_n2=48;					// number y
 float vote_w=0.5f;			// space between dot
 float vote_vtx[]={-0.325f,-0.325f,0.325f,-0.325f,0.325f,0.325f,-0.325f,0.325f};
-/* heart variable				*/
-bool heart_flag=false;	// flag
-int heart_n=12;					// number
-float heart_vtx[]={-0.5f,-0.5f,0.5f,-0.5f,0.5f,0.5f,-0.5f,0.5f,-0.5f,-0.5f,0.5f,-0.5f,0.5f,0.5f,-0.5f,0.5f};
-float heart_tex[]={0.437f,0.8755f,0.3755f,0.8755f,0.3755f,0.937f,0.437f,0.937f,0.437f,0.8755f,0.3755f,0.8755f,0.3755f,0.937f,0.437f,0.937f};
 /* end variable					*/
 bool end_flag=false;		// flag
 float end_radius=-8.0f;	// radius
@@ -984,7 +979,6 @@ int DrawGLScene(void) // draw scene
 							logo_flag=true;
 							greeting_flag=false;
 							vote_flag=true;
-							heart_flag=true;
 							glenz_flag=false;
 							liner_flag=true;
 							calc_txt();
@@ -1007,7 +1001,6 @@ int DrawGLScene(void) // draw scene
 							{
 							logo_flag=true;
 							vote_flag=false;
-							heart_flag=false;
 							glenz_flag=true;
 							intro_radius=1.0f;
 							end_flag=true;
@@ -1657,29 +1650,6 @@ int DrawGLScene(void) // draw scene
 		glDrawArrays(GL_QUADS,0,4);
 		}
 	glDisable(GL_FOG);
-	// draw heart
-	if(heart_flag)
-		{
-		glVertexPointer(2,GL_FLOAT,0,heart_vtx);
-		glTexCoordPointer(2,GL_FLOAT,0,heart_tex);
-		glBlendFunc(GL_SRC_COLOR,GL_DST_ALPHA);
-		a_x=30.0f+180.0f*cosf(main_angle*0.125f);
-		a_y=main_angle*24.0f;
-		radius=2.25f+synchro_value*0.25f*cosf((main_angle-synchro_angle)*12.0f);
-		glColor3f(1.0f,1.0f,1.0f);
-		for(i=0;i<heart_n;i++)
-			{
-			angle=a_y+360.0f/heart_n*i;
-			glLoadIdentity();
-			glTranslatef(0,0,-8.0f);
-			glRotatef(a_x,1.0f,0,0);
-			glRotatef(angle,0,1.0f,0);
-			glTranslatef(0,0,radius);
-			glRotatef(-angle,0,1.0f,0);
-			glRotatef(-a_x,1.0f,0,0);
-			glDrawArrays(GL_QUADS,0,4);
-			}
-		}
 	// draw glenz
 	if(glenz_flag)
 		{
@@ -1855,8 +1825,8 @@ int DrawGLScene(void) // draw scene
 	if(speed_flag)
 		{
 		glDisable(GL_TEXTURE_2D);
-		glBlendFunc(GL_ONE,GL_ONE);
-		c=1.0f-speed_value;
+		glBlendFunc(GL_ZERO,GL_SRC_COLOR);
+		c=speed_value;
 		glColor3f(c,c,c);
 		glLoadIdentity();
 		glVertexPointer(2,GL_INT,0,scanline_vtx);
@@ -2292,7 +2262,6 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				tunnel_flag=false;
 				greeting_flag=false;
 				vote_flag=false;
-				heart_flag=false;
 				end_flag=false;
 				tekk_flag=false;
 				glenz_flag=false;
