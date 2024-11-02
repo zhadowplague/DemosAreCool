@@ -7,12 +7,9 @@
 #include "timer.h"
 #include "minifmod.h"
 
-#define DEBUG 0						// debug [0/1]
-#define START DEBUG?28:0	// part to start
 #define PI 3.14159265358979323846f // pi
 #define PID PI/180.0f			// pi ratio
 #define CR 1.0f/256.0f		// color ratio
-#define SNG DEBUG?0:1			// music flag
 
 Timer* timer;
 float timer_global=0;
@@ -25,7 +22,7 @@ float timer_fps_max=0;
 float timer_music=0;
 float timer_max=0;
 int frame_counter=0;
-int loop_counter=DEBUG ? 1 : -1;
+int loop_counter=-1;
 bool done=false;
 
 FMUSIC_MODULE* mod;			// music handle
@@ -146,10 +143,55 @@ int loop_h;							// height
 int loop_margin;				// margin
 int loop_vtx[8];				// vertex array
 float loop_tex[]={ 0.46484375f,0.76953125f,0.25f,0.76953125f,0.25f,0.75f,0.46484375f,0.75f };
-/* glenz variable				*/
-bool glenz_flag=false;	// flag
-float glenz_vtx[432];		// vertex array
-float glenz_col[576];		// color array
+/* glenz variable */
+bool glenz_flag=false;
+//27 per frame
+float glenz_pos[54]=
+{
+	//frame1
+	0,0,0, //body
+	0,0,2.6, //head
+	1,-1.5,0.5, //right arm inner
+	1,-2,0, //right arm outer
+	-0.5, -0.5, -2, //crooked leg inner
+	-0.5, -1, -2.5, //crooked leg outer
+	-1,1.5,0.5, //left arm inner
+	-1,2,1, //left arm outer
+	0.5, 0.5, -2.5, //straight leg
+	//frame2
+	0,0,0, //body
+	0,0,2.6, //head
+	1,-1.5,0.5, //right arm inner
+	1,-2,0, //right arm outer
+	-0.5, -0.5, -2, //crooked leg inner
+	-0.5, -1, -2.5, //crooked leg outer
+	-1,1.5,0.5, //left arm inner
+	-1,2,1, //left arm outer
+	0.5, 0.5, -2.5, //straight leg
+};
+float glenz_scale[54]=
+{
+	//frame1
+	0.7, 1, 1.6, //body
+	1, 1, 1, //head
+	0.5, 1, 0.5, //right arm inner
+	0.5, 0.5, 1, //right arm outer
+	0.5, 0.5, 1, //crooked leg inner
+	0.5, 1, 0.5, //crooked leg outer
+	0.5, 1, 0.5, //left arm inner
+	0.5, 0.5, 1, //left arm outer
+	0.5, 0.5, 1.5, //straight leg
+	//frame2
+		0.7, 1, 1.6, //body
+	1, 1, 1, //head
+	0.5, 1, 0.5, //right arm inner
+	0.5, 0.5, 1, //right arm outer
+	0.5, 0.5, 1, //crooked leg inner
+	0.5, 1, 0.5, //crooked leg outer
+	0.5, 1, 0.5, //left arm inner
+	0.5, 0.5, 1, //left arm outer
+	0.5, 0.5, 1.5, //straight leg
+};
 /* intro variable				*/
 bool intro_flag=false;	// flag
 int intro_n=12;					// number
@@ -220,16 +262,16 @@ float gameboy_tex[]={ 0.25f,0.78125f,0.3125f,0.78125f,0.3125f,0.875f,0.25f,0.875
 bool flash_flag=false;	// flag
 float flash_angle=0;		// angle
 /* dos variable					*/
-bool dos_flag=DEBUG ? false : true;// flag
+bool dos_flag=true;// flag
 bool skip_dos=false;
-float dos_time=DEBUG ? 0 : 6.0f;
+float dos_time=6.0f;
 int dos_w;							// width
 int dos_h;							// height
 int dos_vtx[8];					// vertex array
 int shell_vtx[8];				// vertex array
 float shell_tex[]={ 1.0f,0.9453125f,1.0f,1.0f,0.75f,1.0f,0.75f,0.9453125f };
 /* debug variable				*/
-bool debug_flag=DEBUG ? true : false;// flag
+bool debug_flag=false;// flag
 bool debug_test=true;		// test
 int debug_w;						// width
 int debug_h;						// height
@@ -288,8 +330,6 @@ PFD_MAIN_PLANE,					// main drawing layer
 0,0,0										// layer masks ignored
 };
 
-#if SNG
-
 typedef struct
 {
 	int length, pos;
@@ -340,8 +380,6 @@ int memtell(unsigned int handle)
 	MEMFILE* memfile=(MEMFILE*)handle;
 	return memfile->pos;
 }
-
-#endif
 
 int load_tex(WORD file, GLint clamp, GLint mipmap)
 {
@@ -465,6 +503,28 @@ void tekk_zoom()
 	tekk_zoom_value=0;
 }
 
+void glenz() {
+	int x=0;
+	int y=1;
+	int z=2;
+	for (int i=0; i<27; i+=3)
+	{
+		float a=glenz_pos[i+x];
+		glenz_pos[i+x]=glenz_pos[i+y];
+		glenz_pos[i+y]=a;
+		a=glenz_pos[i+x];
+		glenz_pos[i+x]=glenz_pos[i+z];
+		glenz_pos[i+z]=a;
+
+		a=glenz_scale[i+x];
+		glenz_scale[i+x]=glenz_scale[i+y];
+		glenz_scale[i+y]=a;
+		a=glenz_scale[i+x];
+		glenz_scale[i+x]=glenz_scale[i+z];
+		glenz_scale[i+z]=a;
+	}
+}
+
 void pins(int n1, int n2, float x, float y, float z, float a, float b, bool type)
 {
 	float k=0.015625f;
@@ -539,19 +599,6 @@ void disk(float s)
 	for (int i=0; i<48; i++) disk_tex[i]=texture[i];
 }
 
-void glenz(float d1, float d2, float r1, float g1, float b1, float a)
-{
-	float c1=(r1+g1+b1)/3.0f;
-	float c2=c1*0.625f;
-	float r2=r1*0.625f;
-	float g2=g1*0.625f;
-	float b2=b1*0.625f;
-	float vertex[]={ -d1,d1,d1,d1,d1,d1,0,0,d2,d1,d1,-d1,-d1,d1,-d1,0,0,-d2,d1,-d1,d1,-d1,-d1,d1,0,0,d2,-d1,-d1,-d1,d1,-d1,-d1,0,0,-d2,-d1,-d1,-d1,-d1,d1,-d1,-d2,0,0,d1,-d1,d1,d1,d1,d1,d2,0,0,-d1,-d1,-d1,-d1,-d1,d1,0,-d2,0,-d1,d1,d1,-d1,d1,-d1,0,d2,0,-d1,d1,d1,-d1,-d1,d1,-d2,0,0,d1,d1,-d1,d1,-d1,-d1,d2,0,0,d1,-d1,d1,d1,-d1,-d1,0,-d2,0,d1,d1,-d1,d1,d1,d1,0,d2,0,-d1,d1,-d1,-d1,d1,d1,-d2,0,0,d1,d1,d1,d1,d1,-d1,d2,0,0,-d1,-d1,d1,d1,-d1,d1,0,-d2,0,-d1,d1,-d1,d1,d1,-d1,0,d2,0,-d1,-d1,d1,-d1,-d1,-d1,-d2,0,0,d1,-d1,-d1,d1,-d1,d1,d2,0,0,d1,-d1,-d1,-d1,-d1,-d1,0,-d2,0,d1,d1,d1,-d1,d1,d1,0,d2,0,-d1,-d1,d1,-d1,d1,d1,0,0,d2,d1,-d1,-d1,d1,d1,-d1,0,0,-d2,d1,d1,d1,d1,-d1,d1,0,0,d2,-d1,d1,-d1,-d1,-d1,-d1,0,0,-d2,d1,d1,-d1,d1,d1,d1,d2,0,0,-d1,d1,d1,-d1,d1,-d1,-d2,0,0,d1,-d1,d1,d1,-d1,-d1,d2,0,0,-d1,-d1,-d1,-d1,-d1,d1,-d2,0,0,-d1,-d1,-d1,-d1,d1,-d1,0,0,-d2,d1,-d1,d1,d1,d1,d1,0,0,d2,-d1,-d1,-d1,d1,-d1,-d1,0,-d2,0,d1,d1,-d1,-d1,d1,-d1,0,d2,0,d1,d1,-d1,d1,-d1,-d1,0,0,-d2,-d1,d1,d1,-d1,-d1,d1,0,0,d2,d1,-d1,d1,-d1,-d1,d1,0,-d2,0,-d1,d1,d1,d1,d1,d1,0,d2,0,-d1,d1,-d1,d1,d1,-d1,0,0,-d2,d1,d1,d1,-d1,d1,d1,0,0,d2,d1,-d1,-d1,d1,-d1,d1,0,-d2,0,-d1,d1,-d1,-d1,d1,d1,0,d2,0,d1,-d1,-d1,-d1,-d1,-d1,0,0,-d2,-d1,-d1,d1,d1,-d1,d1,0,0,d2,-d1,-d1,d1,-d1,-d1,-d1,0,-d2,0,d1,d1,d1,d1,d1,-d1,0,d2,0,d1,-d1,-d1,d1,d1,-d1,d2,0,0,-d1,-d1,d1,-d1,d1,d1,-d2,0,0,d1,d1,d1,d1,-d1,d1,d2,0,0,-d1,d1,-d1,-d1,-d1,-d1,-d2,0,0 };
-	float color[]={ c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a };
-	for (int i=0; i<432; i++) glenz_vtx[i]=vertex[i];
-	for (int i=0; i<576; i++) glenz_col[i]=color[i];
-}
-
 void triforce(float radius2, float z, float r1, float g1, float b1, float r2, float g2, float b2)
 {
 	float radius1=radius2*0.5f;
@@ -597,7 +644,7 @@ int InitGL(void)
 	// initialize some variable
 	timer=new Timer();
 	calc_txt();
-	glenz(1.0f, 1.625f, 0.125f, 0.625f, 0.75f, 0.5f);
+	glenz();
 	cube(cube_w, cube_size*0.75f);
 	chipset(cube_w*0.25f, cube_w*0.0625f, cube_w*0.5f, cube_w*0.1f, cube_w*0.0625f);
 	disk(2.0f);
@@ -742,17 +789,13 @@ int DrawGLScene(void) // draw scene
 	{
 		dos_flag=false;
 		mod_play=true;
-#if SNG
-		FMUSIC_PlaySong(mod);
-#endif
+		//FMUSIC_PlaySong(mod);
 		timer_music=timer_global;
 	}
 	if (mod_play)
 	{
-		//mod_time=(timer_global-timer_music)*1000.0f;
 		mod_time=FMUSIC_GetTime(mod);
 		mod_prv_row=mod_row;
-		//mod_row=(int)(mod_time/mod_tempo)%64;
 		mod_row=FMUSIC_GetRow(mod);
 		if (mod_row>mod_prv_row+1) mod_row=mod_prv_row;
 		if (mod_row!=mod_prv_row)
@@ -763,28 +806,7 @@ int DrawGLScene(void) // draw scene
 				{
 					timer_max=(timer_global-timer_music)*1000.0f;
 					timer_music=timer_global;
-#if !DEBUG
 					mod_ord=FMUSIC_GetOrder(mod);
-					/*
-					mod_ord++;
-					if((mod_ord%32==0)&&(mod_ord>0))
-						{
-						mod_ord=8;
-						loop_counter++;
-						}
-					*/
-#endif
-#if DEBUG
-					if (debug_test)
-					{
-						mod_ord=START;
-						debug_test=false;
-					}
-					else
-					{
-						mod_ord++;
-					}
-#endif
 				}
 				if (((mod_ord>7&&mod_ord<16)||(mod_ord>17&&mod_ord<24&&mod_ord!=21))&&(mod_row%16==8||mod_row==52)) synchro();
 				if ((mod_ord==16||mod_ord==17)&&(mod_row==52)) synchro();
@@ -1443,20 +1465,20 @@ int DrawGLScene(void) // draw scene
 		float angle2=sinf(main_angle*0.25f);
 		if (speed_flag) intro_radius=1.0f+7.0f-7.0f*speed_value;
 		radius=-(float)fabs(0.625f*synchro_value*cosf((main_angle-synchro_angle)*8.0f));
-		glDisable(GL_TEXTURE_2D);
-		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
-		glLoadIdentity();
-		glTranslatef(0, 0, end_radius+intro_radius);
-		glRotatef(main_angle*16.0f, angle1, 0, angle2);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, glenz_vtx);
-		glColorPointer(4, GL_FLOAT, 0, glenz_col);
-		glScalef(10.0f, 11.0f, 11.0f);
-		glDrawArrays(GL_TRIANGLES, 0, 144);
-		glScalef(0.875f, 0.875f, 0.875f);
-		glDrawArrays(GL_TRIANGLES, 0, 144);
-		glDisableClientState(GL_COLOR_ARRAY);
-		glEnable(GL_TEXTURE_2D);
+		//glDisable(GL_TEXTURE_2D);
+		//glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
+		//glLoadIdentity();
+		//glTranslatef(0, 0, end_radius+intro_radius);
+		//glRotatef(main_angle*16.0f, angle1, 0, angle2);
+		//glEnableClientState(GL_COLOR_ARRAY);
+		//glVertexPointer(3, GL_FLOAT, 0, glenz_vtx);
+		//glColorPointer(4, GL_FLOAT, 0, glenz_col);
+		//glScalef(10.0f, 11.0f, 11.0f);
+		//glDrawArrays(GL_TRIANGLES, 0, 144);
+		//glScalef(0.875f, 0.875f, 0.875f);
+		//glDrawArrays(GL_TRIANGLES, 0, 144);
+		//glDisableClientState(GL_COLOR_ARRAY);
+		//glEnable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		glVertexPointer(3, GL_FLOAT, 0, disk_vtx);
@@ -1647,15 +1669,19 @@ int DrawGLScene(void) // draw scene
 	if (glenz_flag)
 	{
 		glDisable(GL_TEXTURE_2D);
-		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
-		glLoadIdentity();
-		glTranslatef(0, 0, -8.0f+intro_radius+(float)fabs(synchro_value*0.375f*cosf((main_angle-synchro_angle)*12.0f)));
-		glRotatef(main_angle*16.0f, cosf(main_angle*0.25f), 0, sinf(main_angle*0.25f));
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, glenz_vtx);
-		glColorPointer(4, GL_FLOAT, 0, glenz_col);
-		glDrawArrays(GL_TRIANGLES, 0, 144);
-		glDisableClientState(GL_COLOR_ARRAY);
+		for (int i=0; i<27; i+=3) {
+			glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
+			glLoadIdentity();
+			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
+			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]-20);
+			//glRotatef(main_angle*16.0f, cosf(main_angle*0.25f), 0, sinf(main_angle*0.25f));
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
+			glColorPointer(2, GL_FLOAT, 0, cube_col);
+			glDrawArrays(GL_QUADS, 0, 20);
+			glDisableClientState(GL_COLOR_ARRAY);
+		}
+
 		glEnable(GL_TEXTURE_2D);
 	}
 	init2d(screen_w, screen_h);
@@ -2191,11 +2217,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// create openGL window
 	if (!CreateGLWindow(name)) return 0;					// quit if window not created
 	// load and play music
-#if SNG
 	FSOUND_File_SetCallbacks(memopen, memclose, memread, memseek, memtell);
 	FSOUND_Init(44100, 0);
-	mod=FMUSIC_LoadSong(MAKEINTRESOURCE(IDR_XM1), NULL);
-#endif
+	mod=FMUSIC_LoadSong(MAKEINTRESOURCE(IDR_XM2), NULL);
 	// main loop
 	while (!done)
 	{
@@ -2266,51 +2290,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					star_z[i]=-(rand()%(int)(hidden_radius*100))*0.01f;
 				}
 				loop_counter=0;
-#if SNG
 				mod_play=false;
 				mod_ord=-1;
 				mod_row=-1;
 				mod_prv_row=0;
-				//mod_tempo=mod_tempo*2;
 				FMUSIC_StopSong(mod);
 				FMUSIC_FreeSong(mod);
 				mod=FMUSIC_LoadSong(MAKEINTRESOURCE(IDR_XM1), NULL);
-#endif
 				keys[VK_F12]=false;
 			}
-#if DEBUG
-			if (keys[VK_F5])
-			{
-				synchro();
-				keys[VK_F5]=false;
-			}
-			if (keys[VK_F6])
-			{
-				sync2(1.75f);
-				keys[VK_F6]=false;
-			}
-			if (keys[VK_F7])
-			{
-				beat();
-				keys[VK_F7]=false;
-			}
-			if (keys[VK_TAB])
-			{
-				tekk_zoom();
-				keys[VK_TAB]=false;
-			}
-			if (keys[VK_BACK])
-			{
-				pause=!pause;
-				keys[VK_BACK]=false;
-			}
-#endif
 		}
 	}
 	// shutdown
-#if SNG
 	FMUSIC_FreeSong(mod);					// stop and kill music
-#endif
 	KillGLWindow();								// kill the window
 	return (msg.wParam);					// exit the program
 }
