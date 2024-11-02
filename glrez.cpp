@@ -112,7 +112,7 @@ char* txt=txt_dos;
 /* cube variable				*/
 bool cube_flag=false;		// flag
 int cube_n=16;					// number
-float cube_size=2.0f;		// size
+float cube_size=1.0f;		// size
 float cube_x[256];			// position x
 float cube_y[256];			// position y
 float cube_z[256];			// position z
@@ -121,8 +121,35 @@ float cube_w=cube_size*0.5f;// width
 float cube_h=cube_size*2.0f;// height
 float cube_ratio=PID*cube_n;// ratio
 float cube_angle=0;			// angle
-float cube_vtx[72];			// cube vertex array
-float cube_tex[40]={ 0,0.745f,0.25f,0.745f,0.25f,0.75f,0,0.75f,0,0.745f,0,0.75f,0.25f,0.75f,0.25f,0.745f,0.25f,0.735f,0,0.735f,0,0.74f,0.25f,0.74f,0,0.735f,0.25f,0.735f,0.25f,0.74f,0,0.74f,0.25f,0.75f,0.25f,1.0f,0,1.0f,0,0.75f };
+float cube_vtx[72]={
+	// Front face
+	-cube_size/2, -cube_size/2,  cube_size/2,    cube_size/2, -cube_size/2,  cube_size/2,    cube_size/2,  cube_size/2,  cube_size/2,   -cube_size/2,  cube_size/2,  cube_size/2,
+	// Back face
+	-cube_size/2, -cube_size/2, -cube_size/2,   -cube_size/2,  cube_size/2, -cube_size/2,    cube_size/2,  cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2, -cube_size/2,
+	// Left face
+	-cube_size/2, -cube_size/2, -cube_size/2,   -cube_size/2,  cube_size/2, -cube_size/2,   -cube_size/2,  cube_size/2,  cube_size/2,   -cube_size/2, -cube_size/2,  cube_size/2,
+	// Right face
+	cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2,  cube_size/2, -cube_size/2,    cube_size/2,  cube_size/2,  cube_size/2,    cube_size/2, -cube_size/2,  cube_size/2,
+	// Top face
+	-cube_size/2,  cube_size/2,  cube_size/2,    cube_size/2,  cube_size/2,  cube_size/2,    cube_size/2,  cube_size/2, -cube_size/2,   -cube_size/2,  cube_size/2, -cube_size/2,
+	// Bottom face
+	-cube_size/2, -cube_size/2,  cube_size/2,   -cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2,  cube_size/2
+};
+float cube_tex[40]={
+	0.0f, 0.745f, 0.25f, 0.745f, 0.25f, 0.75f, 0.0f, 0.75f,
+	0.0f, 0.745f, 0.0f, 0.75f, 0.25f, 0.75f, 0.25f, 0.745f,
+	0.25f, 0.735f, 0.0f, 0.735f, 0.0f, 0.74f, 0.25f, 0.74f,
+	0.0f, 0.735f, 0.25f, 0.735f, 0.25f, 0.74f, 0.0f, 0.74f,
+	0.25f, 0.75f, 0.25f, 1.0f, 0.0f, 1.0f, 0.0f, 0.75f
+};
+float cube_face_tex[48]={
+	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //front
+	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
+	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
+	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
+	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
+	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //leftside
+};
 float cube_white_col[72];         // cube white vertex colors
 float cube_blue_col[72];         // cube brown vertex colors
 float circuit_tex[16]={ 0.75f,0.75f,0.75f,1.0f,0.625f,1.0f,0.625f,0.75f,0.625f,0.75f,0.625f,1.0f,0.5f,1.0f,0.5f,0.75f };
@@ -196,7 +223,7 @@ float glenz_scale[54]=
 /* intro variable				*/
 bool intro_flag=false;	// flag
 int intro_n=12;					// number
-int intro_i=0;					// counter
+int intro_i=1;					// counter
 float intro_radius;			// radius
 float intro_angle=0;		// angle
 /* tunnel variable			*/
@@ -412,7 +439,7 @@ void init3d(GLsizei width, GLsizei height)
 	glMatrixMode(GL_MODELVIEW);		// select modelview matrix
 	glLoadIdentity();							// reset modelview matrix
 	// Set camera position and orientation
-	gluLookAt(0, -5 +cosf(main_angle*0.25f), 2+cosf(main_angle*0.25f),                    // Camera position
+	gluLookAt(0, -5+cosf(main_angle*0.25f), 2+cosf(main_angle*0.25f)*10.0,                    // Camera position
 		0, 0, 0,           // Look-at point
 		1, 0, 0);                      // Up vector
 }
@@ -573,25 +600,10 @@ void rectangle(int x, int y, int w, int h)
 	glEnd();
 }
 
-void cube(float w, float h)
+void cube()
 {
-	float vertex[]={
-		// Front face
-		   -w/2, -h/2,  w/2,    w/2, -h/2,  w/2,    w/2,  h/2,  w/2,   -w/2,  h/2,  w/2,
-		   // Back face
-		   -w/2, -h/2, -w/2,   -w/2,  h/2, -w/2,    w/2,  h/2, -w/2,    w/2, -h/2, -w/2,
-		   // Left face
-		   -w/2, -h/2, -w/2,   -w/2,  h/2, -w/2,   -w/2,  h/2,  w/2,   -w/2, -h/2,  w/2,
-		   // Right face
-			w/2, -h/2, -w/2,    w/2,  h/2, -w/2,    w/2,  h/2,  w/2,    w/2, -h/2,  w/2,
-			// Top face
-			-w/2,  h/2,  w/2,    w/2,  h/2,  w/2,    w/2,  h/2, -w/2,   -w/2,  h/2, -w/2,
-			// Bottom face
-			-w/2, -h/2,  w/2,   -w/2, -h/2, -w/2,    w/2, -h/2, -w/2,    w/2, -h/2,  w/2
-	};
 	for (int i=0; i<72; i++)
 	{
-		cube_vtx[i]=vertex[i];
 		cube_white_col[i]=1;
 	}
 	for (int i=0; i<=24; i+=3) {
@@ -677,7 +689,7 @@ int InitGL(void)
 	timer=new Timer();
 	calc_txt();
 	glenz();
-	cube(1, 1);
+	cube();
 	chipset(cube_w*0.25f, cube_w*0.0625f, cube_w*0.5f, cube_w*0.1f, cube_w*0.0625f);
 	disk(2.0f);
 	triforce(1.0f, 0.125f, 0.875f, 0.75f, 0.25f, 0.625f, 0.5f, 0);
@@ -852,7 +864,8 @@ int DrawGLScene(void) // draw scene
 					switch (mod_row)
 					{
 					case 0:
-						//intro_flag=true;
+						intro_flag=true;
+						tunnel_flag=true;
 						glenz_flag=true;
 						flash();
 						intro_i=1;
@@ -880,20 +893,20 @@ int DrawGLScene(void) // draw scene
 				case 2:
 					switch (mod_row)
 					{
-					case  0: intro_i=13; synchro(); break;
-					case  6: intro_i=14; synchro(); break;
-					case 12: intro_i=15; synchro(); break;
-					case 32: intro_i=16; synchro(); break;
-					case 38: intro_i=17; synchro(); break;
-					case 44: intro_i=18; synchro(); break;
+					case  0: synchro(); break;
+					case  6: synchro(); break;
+					case 12: synchro(); break;
+					case 32: synchro(); break;
+					case 38: synchro(); break;
+					case 44: synchro(); break;
 					}
 					break;
 				case 3:
 					switch (mod_row)
 					{
-					case  0: intro_i=19; synchro(); break;
-					case  6: intro_i=20; synchro(); break;
-					case 12: intro_i=21; synchro(); break;
+					case  0:  synchro(); break;
+					case  6: synchro(); break;
+					case 12:  synchro(); break;
 					case 18: speed(); break;
 					}
 					break;
@@ -1306,53 +1319,14 @@ int DrawGLScene(void) // draw scene
 	// draw intro
 	if (intro_flag)
 	{
-		glDisable(GL_BLEND);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		intro_radius=3.0f;
-		if (move_flag) intro_radius=2.25f+0.75f*move_value;
-		angle=main_angle*4.0f;
-		float x=0.5f;
-		float y=0.125f*cosf(main_angle*0.5f);
-		float z=-5.0f;
-		if (speed_flag)
-		{
-			angle+=-270.0f+270.0f*speed_value;
-			intro_radius+=3.25f-3.25f*speed_value;
-			x-=-0.25f+0.25f*speed_value;
-			y+=0.75f-0.75f*speed_value;
-		}
-		for (int i=0; i<intro_i; i++)
-		{
-			glLoadIdentity();
-			glTranslatef(0, 0, z);
-			glRotatef(90.0f, x, y, -0.125f);
-			glRotatef(360.0f/intro_n*i+angle, 0, 1.0f, 0);
-			glTranslatef(intro_radius, 0, 0);
-			glRotatef(90.0f, 0.5f, -0.25f, 0.75f);
-			glVertexPointer(3, GL_FLOAT, 0, chipset_vtx);
-			glTexCoordPointer(2, GL_FLOAT, 0, chipset_tex);
-			glDrawArrays(GL_QUADS, 0, 180);
-		}
-		for (int i=intro_n; i<intro_i; i++)
-		{
-			glLoadIdentity();
-			glTranslatef(0, 0, z);
-			glRotatef(90.0f, x, y, -0.125f);
-			glRotatef(360.0f/(intro_n-3)*i+angle, 0, 1.0f, 0);
-			glTranslatef(intro_radius+1.0f, 0, 0);
-			glRotatef(90.0f, 0.5f, -0.25f, 0.75f);
-			glVertexPointer(3, GL_FLOAT, 0, chipset_vtx);
-			glTexCoordPointer(2, GL_FLOAT, 0, chipset_tex);
-			glDrawArrays(GL_QUADS, 0, 180);
-		}
-		glEnable(GL_BLEND);
+
 	}
 	glDisable(GL_DEPTH_TEST);
 	// draw tunnel
 	if (tunnel_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
-		glVertexPointer(2, GL_FLOAT, 0, tunnel_vtx);
+		/*glVertexPointer(2, GL_FLOAT, 0, tunnel_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, tunnel_tex);
 		angle=(main_angle-tunnel_angle)+540.0f*PID;
 		float x=tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f);
@@ -1376,14 +1350,17 @@ int DrawGLScene(void) // draw scene
 			for (int j=0; j<tunnel_n2; j++)
 			{
 				float c=(tunnel_z[i]<-1.0f) ? 1.0f : -tunnel_z[i];
-				glLoadIdentity();
+				glPushMatrix();
 				glColor3f((0.5f+0.5f*cosf(angle*j))*c, 0.5f*c, (0.5f+0.5f*sinf(angle*j))*c);
 				glRotatef(a_z, 0, 0, 1.0f);
 				glTranslatef(p_x+tunnel_x[i]+tunnel_radius*cosf(angle*j+angle2*PID), p_y+tunnel_y[i]+tunnel_radius*sinf(angle*j+angle2*PID), tunnel_z[i]);
 				glRotatef(360.0f/tunnel_n2*j+angle2, 0, 0, 1.0f);
 				glDrawArrays(GL_QUADS, 0, 4);
+				glPopMatrix();
 			}
-		}
+		}*/
+		float x=0;
+		float y=0;
 		// draw star
 		glVertexPointer(2, GL_FLOAT, 0, star_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, star_tex);
@@ -1399,10 +1376,11 @@ int DrawGLScene(void) // draw scene
 				star_y[i]=y+radius*sinf(star_angle[i]);
 				star_z[i]-=tunnel_n1*tunnel_depth;
 			}
-			glLoadIdentity();
+			glPushMatrix();
 			glRotatef(a_z, 0, 0, 1.0f);
 			glTranslatef(p_x+star_x[i], p_y+star_y[i], star_z[i]);
 			glDrawArrays(GL_QUADS, 0, 4);
+			glPopMatrix();
 		}
 	}
 	glEnable(GL_BLEND);
@@ -1688,19 +1666,19 @@ int DrawGLScene(void) // draw scene
 	if (glenz_flag)
 	{
 		int frame=27*glenz_frame;
-		glDisable(GL_TEXTURE_2D);
-		//glDisable(GL_BLEND);
 		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
+		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 		glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 		glDrawArrays(GL_QUADS, 0, 24);
 		glDisableClientState(GL_COLOR_ARRAY);
 		glPopMatrix();
-		
+
+		glDisable(GL_TEXTURE_2D);
 		int endFrame=27*(glenz_frame+1);
 		for (int i=frame+3; i<endFrame; i+=3) {
 			glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
@@ -1715,7 +1693,6 @@ int DrawGLScene(void) // draw scene
 			glPopMatrix();
 		}
 		glEnable(GL_TEXTURE_2D);
-		//glEnable(GL_BLEND);
 	}
 	init2d(screen_w, screen_h);
 	// draw copper

@@ -55,9 +55,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="rez1911cracktro.xm">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="resource\dreamin4.xm">
       <Filter>Resource Files</Filter>
     </None>
