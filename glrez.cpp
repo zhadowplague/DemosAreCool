@@ -261,9 +261,7 @@ float move_value=0;			// value
 bool speed_flag=false;	// flag
 float speed_angle=0;		// angle
 float speed_value=0;		// value
-int i,j,k;
-float x,y,z,w,h;
-float r,g,b,c;
+
 float angle,radius,scale;
 
 LRESULT	CALLBACK WndProc(HWND,UINT,WPARAM,LPARAM);	// wndProc declaration
@@ -394,7 +392,7 @@ void calc_txt()
 	liner_n=0;
 	liner_max=0;
 	liner_i=0;
-	for(i=0;i<liner_length;i++)
+	for(int i=0;i<liner_length;i++)
 		{
 		if((byte)txt[i]!=13)
 			{
@@ -474,8 +472,8 @@ void pins(int n1,int n2,float x,float y,float z,float a,float b,bool type)
 	b=type?-b:b;
 	float vertex[]={x+a,0,z+b,x,0,z+b,x,0,z-b,x+a,0,z-b,x+a,-y,z+b,x+a,0,z+b,x+a,0,z-b,x+a,-y,z-b,x+a,-y,z-b,x+a,0,z-b,x+a,0,z+b,x+a,-y,z+b,x+a,-y*3,z+b*0.5f,x+a,-y,z+b*0.5f,x+a,-y,z-b*0.5f,x+a,-y*3,z-b*0.5f,x+a,-y*3,z-b*0.5f,x+a,-y,z-b*0.5f,x+a,-y,z+b*0.5f,x+a,-y*3,z+b*0.5f};
 	float texture[]={0.3125f,0.875f+k+k,0.3125f,0.875f+k,0.25f,0.875f+k,0.25f,0.875f+k+k,0.375f,0.875f+k+k,0.375f,0.875f+k+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.375f,0.875f+k+k,0.375f,0.875f+k+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k};
-	for(i=0;i<60;i++) chipset_vtx[n1+i]=vertex[i];
-	for(i=0;i<40;i++) chipset_tex[n2+i]=texture[i];
+	for(int i=0;i<60;i++) chipset_vtx[n1+i]=vertex[i];
+	for(int i=0;i<40;i++) chipset_tex[n2+i]=texture[i];
 	}
 
 void chipset(float x,float y,float z,float a,float b)
@@ -483,8 +481,8 @@ void chipset(float x,float y,float z,float a,float b)
 	float k=0.015625f;
 	float vertex[]={x,y,z,-x,y,z,-x,-y,z,x,-y,z,-x,y,-z,x,y,-z,x,-y,-z,-x,-y,-z,-x,y,z,-x,y,-z,-x,-y,-z,-x,-y,z,x,y,-z,x,y,z,x,-y,z,x,-y,-z,x,y,z,x,y,-z,-x,y,-z,-x,y,z};
 	float texture[]={0.375f,0.875f+k*3,0.25f,0.875f+k*3,0.25f,0.875f+k*2,0.375f,0.875f+k*2,0.25f,0.875f+k*3,0.375f,0.875f+k*3,0.375f,0.875f+k*2,0.25f,0.875f+k*2,0.375f,0.875f+k*4,0.25f,0.875f+k*4,0.25f,0.875f+k*3,0.375f,0.875f+k*3,0.25f,0.875f+k*4,0.375f,0.875f+k*4,0.375f,0.875f+k*3,0.25f,0.875f+k*3,0.375f,1.0f,0.25f,1.0f,0.25f,0.9375f,0.375f,0.9375f};
-	for(i=0;i<60;i++) chipset_vtx[i]=vertex[i];
-	for(i=0;i<40;i++) chipset_tex[i]=texture[i];
+	for(int i=0;i<60;i++) chipset_vtx[i]=vertex[i];
+	for(int i=0;i<40;i++) chipset_tex[i]=texture[i];
 	pins(60  ,40  ,-x,y,-z*0.75f,a,b,false);
 	pins(60*2,40*2,-x,y,-z*0.25f,a,b,false);
 	pins(60*3,40*3,-x,y, z*0.25f,a,b,false);
@@ -497,9 +495,6 @@ void chipset(float x,float y,float z,float a,float b)
 
 void rectangle(int x,int y,int w,int h)
 	{
-	//int vertex[]={x+w,y,x,y,x,y+h,x+w,y+h};
-	//glVertexPointer(2,GL_INT,0,vertex);
-	//glDrawArrays(GL_QUADS,0,4);
 	glLoadIdentity();
 	glBegin(GL_QUADS);
 		glVertex2i(x+w,y  );
@@ -512,13 +507,13 @@ void rectangle(int x,int y,int w,int h)
 void cube(float w,float h)
 	{
 	float vertex[]={-w,0,w,w,0,w,w,h,w,-w,h,w,-w,0,-w,-w,h,-w,w,h,-w,w,0,-w,-w,0,-w,-w,0,w,-w,h,w,-w,h,-w,w,0,w,w,0,-w,w,h,-w,w,h,w,w,h,w,w,h,-w,-w,h,-w,-w,h,w};
-	for(i=0;i<60;i++) cube_vtx[i]=vertex[i];
+	for(int i=0;i<60;i++) cube_vtx[i]=vertex[i];
 	}
 
 void copper()
 	{
 	copper_h=screen_h/copper_n;
-	for(i=0;i<copper_n;i++)
+	for(int i=0;i<copper_n;i++)
 		{
 		copper_vtx[i*8  ]=screen_w;
 		copper_vtx[i*8+1]=copper_h*i;
@@ -540,8 +535,8 @@ void disk(float s)
 	glColor3f(1.0f,1.0f,1.0f);
 	float vertex[]={-w,-h,d,w,-h,d,w,h,d,-w,h,d,w,-h,-d,-w,-h,-d,-w,h,-d,w,h,-d,-w,-h,-d,-w,-h,d,-w,h,d,-w,h,-d,w,h,-d,w,h,d,w,-h,d,w,-h,-d,-w,h,d,w,h,d,w,h,-d,-w,h,-d,-w,-h,-d,w,-h,-d,w,-h,d,-w,-h,d};
 	float texture[]={0.5f+t,0,1.0f-t,0,1.0f-t,0.5f,0.5f+t,0.5f,1.0f-t,0,0.5f+t,0,0.5f+t,0.5f,1.0f-t,0.5f,0.5f+t*0.5f,0,0.5f+t*0.75f,0,0.5f+t*0.75f,0.5f,0.5f+t*0.5f,0.5f,1.0f-t*0.5f,0.5f,1.0f-t*0.75f,0.5f,1.0f-t*0.75f,0,1.0f-t*0.5f,0,0.5f+t,0.5f+t*1.0f,1.0f-t,0.5f+t*1.0f,1.0f-t,0.5f+t*0.75f,0.5f+t,0.5f+t*0.75f,0.5f+t,0.5f+t*0.5f,1.0f-t,0.5f+t*0.5f,1.0f-t,0.5f+t*0.25f,0.5f+t,0.5f+t*0.25f};
-	for(i=0;i<72;i++) disk_vtx[i]=vertex[i];
-	for(i=0;i<48;i++) disk_tex[i]=texture[i];
+	for(int i=0;i<72;i++) disk_vtx[i]=vertex[i];
+	for(int i=0;i<48;i++) disk_tex[i]=texture[i];
 	}
 
 void glenz(float d1,float d2,float r1,float g1,float b1,float a)
@@ -553,8 +548,8 @@ void glenz(float d1,float d2,float r1,float g1,float b1,float a)
 	float b2=b1*0.625f;
 	float vertex[]={-d1,d1,d1,d1,d1,d1,0,0,d2,d1,d1,-d1,-d1,d1,-d1,0,0,-d2,d1,-d1,d1,-d1,-d1,d1,0,0,d2,-d1,-d1,-d1,d1,-d1,-d1,0,0,-d2,-d1,-d1,-d1,-d1,d1,-d1,-d2,0,0,d1,-d1,d1,d1,d1,d1,d2,0,0,-d1,-d1,-d1,-d1,-d1,d1,0,-d2,0,-d1,d1,d1,-d1,d1,-d1,0,d2,0,-d1,d1,d1,-d1,-d1,d1,-d2,0,0,d1,d1,-d1,d1,-d1,-d1,d2,0,0,d1,-d1,d1,d1,-d1,-d1,0,-d2,0,d1,d1,-d1,d1,d1,d1,0,d2,0,-d1,d1,-d1,-d1,d1,d1,-d2,0,0,d1,d1,d1,d1,d1,-d1,d2,0,0,-d1,-d1,d1,d1,-d1,d1,0,-d2,0,-d1,d1,-d1,d1,d1,-d1,0,d2,0,-d1,-d1,d1,-d1,-d1,-d1,-d2,0,0,d1,-d1,-d1,d1,-d1,d1,d2,0,0,d1,-d1,-d1,-d1,-d1,-d1,0,-d2,0,d1,d1,d1,-d1,d1,d1,0,d2,0,-d1,-d1,d1,-d1,d1,d1,0,0,d2,d1,-d1,-d1,d1,d1,-d1,0,0,-d2,d1,d1,d1,d1,-d1,d1,0,0,d2,-d1,d1,-d1,-d1,-d1,-d1,0,0,-d2,d1,d1,-d1,d1,d1,d1,d2,0,0,-d1,d1,d1,-d1,d1,-d1,-d2,0,0,d1,-d1,d1,d1,-d1,-d1,d2,0,0,-d1,-d1,-d1,-d1,-d1,d1,-d2,0,0,-d1,-d1,-d1,-d1,d1,-d1,0,0,-d2,d1,-d1,d1,d1,d1,d1,0,0,d2,-d1,-d1,-d1,d1,-d1,-d1,0,-d2,0,d1,d1,-d1,-d1,d1,-d1,0,d2,0,d1,d1,-d1,d1,-d1,-d1,0,0,-d2,-d1,d1,d1,-d1,-d1,d1,0,0,d2,d1,-d1,d1,-d1,-d1,d1,0,-d2,0,-d1,d1,d1,d1,d1,d1,0,d2,0,-d1,d1,-d1,d1,d1,-d1,0,0,-d2,d1,d1,d1,-d1,d1,d1,0,0,d2,d1,-d1,-d1,d1,-d1,d1,0,-d2,0,-d1,d1,-d1,-d1,d1,d1,0,d2,0,d1,-d1,-d1,-d1,-d1,-d1,0,0,-d2,-d1,-d1,d1,d1,-d1,d1,0,0,d2,-d1,-d1,d1,-d1,-d1,-d1,0,-d2,0,d1,d1,d1,d1,d1,-d1,0,d2,0,d1,-d1,-d1,d1,d1,-d1,d2,0,0,-d1,-d1,d1,-d1,d1,d1,-d2,0,0,d1,d1,d1,d1,-d1,d1,d2,0,0,-d1,d1,-d1,-d1,-d1,-d1,-d2,0,0};
 	float color[]={c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c1,c1,c1,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,c2,c2,c2,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r1,g1,b1,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a,r2,g2,b2,a};
-	for(i=0;i<432;i++) glenz_vtx[i]=vertex[i];
-	for(i=0;i<576;i++) glenz_col[i]=color[i];
+	for(int i=0;i<432;i++) glenz_vtx[i]=vertex[i];
+	for(int i=0;i<576;i++) glenz_col[i]=color[i];
 	}
 
 void triforce(float radius2,float z,float r1,float g1,float b1,float r2,float g2,float b2)
@@ -575,7 +570,7 @@ void triforce(float radius2,float z,float r1,float g1,float b1,float r2,float g2
 	glColor3f(r1,g1,b1);
 	float vertex[]={x1,y1,z,x1,y1,z,x4,y4,z,x2,y2,z,x2,y2,z,x2,y2,z,x5,y5,z,x3,y3,z,x3,y3,z,x3,y3,z,x6,y6,z,x1,y1,z,x1,y1,0,x1,y1,0,x4,y4,0,x2,y2,0,x2,y2,0,x2,y2,0,x5,y5,0,x3,y3,0,x3,y3,0,x3,y3,0,x6,y6,0,x1,y1,0,x1,y1,z,x2,y2,z,x2,y2,0,x1,y1,0,x2,y2,z,x4,y4,z,x4,y4,0,x2,y2,0,x4,y4,z,x1,y1,z,x1,y1,0,x4,y4,0,x2,y2,z,x3,y3,z,x3,y3,0,x2,y2,0,x3,y3,z,x5,y5,z,x5,y5,0,x3,y3,0,x5,y5,z,x2,y2,z,x2,y2,0,x5,y5,0,x3,y3,z,x1,y1,z,x1,y1,0,x3,y3,0,x1,y1,z,x6,y6,z,x6,y6,0,x1,y1,0,x6,y6,z,x3,y3,z,x3,y3,0,x6,y6,0};
 	float color[]={r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2};
-	for(i=0;i<180;i++)
+	for(int i=0;i<180;i++)
 		{
 		triforce_vtx[i]=vertex[i];
 		triforce_col[i]=color[i];
@@ -608,7 +603,7 @@ int InitGL(void)
 	chipset(cube_w*0.25f,cube_w*0.0625f,cube_w*0.5f,cube_w*0.1f,cube_w*0.0625f);
 	disk(2.0f);
 	triforce(1.0f,0.125f,0.875f,0.75f,0.25f,0.625f,0.5f,0);
-	for(i=0;i<star_n;i++)
+	for(int i=0;i<star_n;i++)
 		{
 		star_angle[i]=(rand()%3600)*0.1f;
 		radius=((rand()%1000)*0.01f);
@@ -617,17 +612,17 @@ int InitGL(void)
 		star_y[i]=radius*sinf(star_angle[i]);
 		star_z[i]=-(rand()%(int)(tunnel_depth*tunnel_n1*1000))*0.001f;
 		}
-	y=0;
-	k=0;
+	float y=0;
+	int k=0;
 	float x1,x2,y1,y2;
-	for(i=0;i<tekk_bar;i++)
+	for(int i=0;i<tekk_bar;i++)
 		{
 		x1=-tekk_w;
 		x2=0;
 		y+=tekk_w*2.0f;
 		y1=y-tekk_size;
 		y2=y+tekk_size;
-		for(j=0;j<tekk_n;j++)
+		for(int j=0;j<tekk_n;j++)
 			{
 			x1+=tekk_w;
 			x2+=tekk_w;
@@ -668,9 +663,9 @@ int InitGL(void)
 			tekk_vtx[k+45]=x2;
 			tekk_vtx[k+46]=y2;
 			tekk_vtx[k+47]=0;
-			r=0.25f+0.25f*cosf(angle2);
-			g=0.25f;
-			b=0.25f+0.25f*sinf(angle2);
+			float r=0.25f+0.25f*cosf(angle2);
+			float g=0.25f;
+			float b=0.25f+0.25f*sinf(angle2);
 			tekk_col[k   ]=0.45f;
 			tekk_col[k+ 1]=0.5f;
 			tekk_col[k+ 2]=0.55f;
@@ -922,11 +917,11 @@ int DrawGLScene(void) // draw scene
 							txt=txt_info3;
 							calc_txt();
 							flash();
-							for(i=0;i<tunnel_n1;i++)
+							for(int i=0;i<tunnel_n1;i++)
 								{
 								angle=540.0f*PID;
-								x=tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f);
-								y=tunnel_path*sinf(angle*0.25f)-tunnel_path*cosf(angle*0.25f);
+								float x=tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f);
+								float y=tunnel_path*sinf(angle*0.25f)-tunnel_path*cosf(angle*0.25f);
 								tunnel_x[i]=x;
 								tunnel_y[i]=y;
 								tunnel_z[i]=-tunnel_depth*i;
@@ -1183,13 +1178,13 @@ int DrawGLScene(void) // draw scene
 		a_x=60.0f+10.0f*angle;
 		a_y=-60.0f+(cube_angle-main_angle)*8.0f+speed_value*180.0f;
 		a_z=0;
-		h=(float)(cube_size*0.1f+(circuit_flag?0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)):0));
-		k=0;
-		for(i=0;i<cube_n;i++)
+		float h=(float)(cube_size*0.1f+(circuit_flag?0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)):0));
+		int k=0;
+		for(int i=0;i<cube_n;i++)
 			{
 			float a=i*cube_ratio;
-			x=-(cube_n-1)*cube_size*0.5f+i*cube_size;
-			for(j=0;j<cube_n;j++)
+			float x=-(cube_n-1)*cube_size*0.5f+i*cube_size;
+			for(int j=0;j<cube_n;j++)
 				{
 				cube_x[k]=x;
 				float b=j*cube_ratio;
@@ -1201,7 +1196,7 @@ int DrawGLScene(void) // draw scene
 			}
 		glVertexPointer(3,GL_FLOAT,0,cube_vtx);
 		glTexCoordPointer(2,GL_FLOAT,0,cube_tex);
-		for(i=0;i<k;i++)
+		for(int i=0;i<k;i++)
 			{
 			glLoadIdentity();
 			glTranslatef(p_x,p_y,p_z);
@@ -1218,7 +1213,7 @@ int DrawGLScene(void) // draw scene
 			glTexCoordPointer(2,GL_FLOAT,0,circuit_tex);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_ONE,GL_DST_ALPHA);
-			for(i=0;i<k;i++)
+			for(int i=0;i<k;i++)
 				{
 				glLoadIdentity();
 				glTranslatef(p_x,p_y,p_z);
@@ -1237,7 +1232,7 @@ int DrawGLScene(void) // draw scene
 		glVertexPointer(3,GL_FLOAT,0,chipset_vtx);
 		glTexCoordPointer(2,GL_FLOAT,0,chipset_tex);
 		glColor3f(1.0f,1.0f,1.0f);
-		for(i=0;i<k;i++)
+		for(int i=0;i<k;i++)
 			{
 			glLoadIdentity();
 			glTranslatef(p_x,p_y,p_z);
@@ -1263,9 +1258,9 @@ int DrawGLScene(void) // draw scene
 		intro_radius=3.0f;
 		if(move_flag) intro_radius=2.25f+0.75f*move_value;
 		angle=main_angle*4.0f;
-		x=0.5f;
-		y=0.125f*cosf(main_angle*0.5f);
-		z=-5.0f;
+		float x=0.5f;
+		float y=0.125f*cosf(main_angle*0.5f);
+		float z=-5.0f;
 		if(speed_flag)
 			{
 			angle+=-270.0f+270.0f*speed_value;
@@ -1273,7 +1268,7 @@ int DrawGLScene(void) // draw scene
 			x-=-0.25f+0.25f*speed_value;
 			y+=0.75f-0.75f*speed_value;
 			}
-		for(i=0;i<intro_i;i++)
+		for(int i=0;i<intro_i;i++)
 			{
 			glLoadIdentity();
 			glTranslatef(0,0,z);
@@ -1285,7 +1280,7 @@ int DrawGLScene(void) // draw scene
 			glTexCoordPointer(2,GL_FLOAT,0,chipset_tex);
 			glDrawArrays(GL_QUADS,0,180);
 			}
-		for(i=intro_n;i<intro_i;i++)
+		for(int i=intro_n;i<intro_i;i++)
 			{
 			glLoadIdentity();
 			glTranslatef(0,0,z);
@@ -1307,14 +1302,14 @@ int DrawGLScene(void) // draw scene
 		glVertexPointer(2,GL_FLOAT,0,tunnel_vtx);
 		glTexCoordPointer(2,GL_FLOAT,0,tunnel_tex);
 		angle=(main_angle-tunnel_angle)+540.0f*PID;
-		x=tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f);
-		y=tunnel_path*sinf(angle*0.25f)-tunnel_path*cosf(angle*0.25f);
+		float x=tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f);
+		float y=tunnel_path*sinf(angle*0.25f)-tunnel_path*cosf(angle*0.25f);
 		angle-=590.0f*PID;
 		radius=synchro_value*0.1f*cosf((main_angle-synchro_angle)*16.0f);
 		p_x=-(tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f))-(speed_flag?(1.0f-speed_value)*tunnel_path*5.0f:0.0f);
 		p_y=-(tunnel_path*sinf(angle*0.25f)-tunnel_path*cosf(angle*0.25f)+radius);
 		a_z=p_x*10.0f;
-		for(i=0;i<tunnel_n1;i++)
+		for(int i=0;i<tunnel_n1;i++)
 			{
 			tunnel_z[i]+=(main_angle-main_angle_prv)*1.5f;
 			if(tunnel_z[i]>0.0f)
@@ -1325,9 +1320,9 @@ int DrawGLScene(void) // draw scene
 				}
 			angle=360.0f*PID/tunnel_n2;
 			float angle2=720.0f/tunnel_n1*i;
-			for(j=0;j<tunnel_n2;j++)
+			for(int j=0;j<tunnel_n2;j++)
 				{
-				c=(tunnel_z[i]<-1.0f)?1.0f:-tunnel_z[i];
+				float c=(tunnel_z[i]<-1.0f)?1.0f:-tunnel_z[i];
 				glLoadIdentity();
 				glColor3f((0.5f+0.5f*cosf(angle*j))*c,0.5f*c,(0.5f+0.5f*sinf(angle*j))*c);
 				glRotatef(a_z,0,0,1.0f);
@@ -1340,7 +1335,7 @@ int DrawGLScene(void) // draw scene
 		glVertexPointer(2,GL_FLOAT,0,star_vtx);
 		glTexCoordPointer(2,GL_FLOAT,0,star_tex);
 		glColor3f(1.0f,1.0f,1.0f);
-		for(i=0;i<star_n;i++)
+		for(int i=0;i<star_n;i++)
 			{
 			star_z[i]+=(main_angle-main_angle_prv)*1.5f;
 			if(star_z[i]>0.0f)
@@ -1363,19 +1358,19 @@ int DrawGLScene(void) // draw scene
 		{
 		int greeting_x=14;
 		int greeting_y=(int)(14.0f/screen_w*screen_h+2);
-		w=4.125f;
-		h=4.25f;
-		x=-w*(greeting_x-1)*0.5f+0.15f*synchro_value*cosf((main_angle-synchro_angle)*16.0f);
-		y=-h*(greeting_y-0)*0.5f+(float)fmod(main_angle*2.0f,h);
-		z=-12.0f;
+		float w=4.125f;
+		float h=4.25f;
+		float x=-w*(greeting_x-1)*0.5f+0.15f*synchro_value*cosf((main_angle-synchro_angle)*16.0f);
+		float y=-h*(greeting_y-0)*0.5f+(float)fmod(main_angle*2.0f,h);
+		float z=-12.0f;
 		glEnable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_COLOR,GL_SRC_ALPHA);
 		glColor3f(1.0f,1.0f,1.0f);
 		glVertexPointer(3,GL_FLOAT,0,disk_vtx);
 		glTexCoordPointer(2,GL_FLOAT,0,disk_tex);
-		for(i=0;i<greeting_x;i++)
+		for(int i=0;i<greeting_x;i++)
 			{
-			for(j=0;j<greeting_y;j++)
+			for(int j=0;j<greeting_y;j++)
 				{
 				glLoadIdentity();
 				glRotatef(22.5f*cosf(main_angle*0.25f),1.0f,0,0);
@@ -1389,9 +1384,9 @@ int DrawGLScene(void) // draw scene
 		glEnableClientState(GL_COLOR_ARRAY);
 		glVertexPointer(3,GL_FLOAT,0,triforce_vtx);
 		glColorPointer(3,GL_FLOAT,0,triforce_col);
-		for(i=0;i<greeting_x;i++)
+		for(int i=0;i<greeting_x;i++)
 			{
-			for(j=0;j<greeting_y;j++)
+			for(int j=0;j<greeting_y;j++)
 				{
 				glLoadIdentity();
 				glRotatef(22.5f*cosf(main_angle*0.25f),1.0f,0,0);
@@ -1409,25 +1404,25 @@ int DrawGLScene(void) // draw scene
 	if(vote_flag)
 		{
 		glBlendFunc(GL_SRC_COLOR,GL_SRC_ALPHA);
-		w=0.325f;
-		h=0.325f;
+		float w=0.325f;
+		float h=0.325f;
 		angle=sync2_value*cosf((main_angle-sync2_angle)*1.25f);
 		a_x=50.0f;//+180.0f*cosf(main_angle*0.125f);
 		a_y=-main_angle*16.0f-120.0f*angle;
 		p_x=-vote_n1*vote_w*0.25f;
 		p_y=-32.0f*angle;
 		p_z=-16.0f;
-		z=-vote_n2*vote_w*0.5f;
+		float z=-vote_n2*vote_w*0.5f;
 		radius=1.0f;
 		glVertexPointer(2,GL_FLOAT,0,vote_vtx);
 		glTexCoordPointer(2,GL_FLOAT,0,star_tex);
-		for(i=0;i<vote_n1;i++)
+		for(int i=0;i<vote_n1;i++)
 			{
-			x=p_x+i*vote_w;
+			float x=p_x+i*vote_w;
 			angle=720.0f*PID/vote_n1*i+cosf(i*0.375f)+main_angle*1.625f;
-			for(j=0;j<vote_n2;j++)
+			for(int j=0;j<vote_n2;j++)
 				{
-				y=-0.5f-radius*1.5f*cosf(main_angle*0.25f)+sinf((i+j)*0.25f)+radius*cosf(angle)+radius*sinf(720.0f*1.5f*PID/vote_n2*j+main_angle);
+				float y=-0.5f-radius*1.5f*cosf(main_angle*0.25f)+sinf((i+j)*0.25f)+radius*cosf(angle)+radius*sinf(720.0f*1.5f*PID/vote_n2*j+main_angle);
 				glColor3f(0.5f+0.5f*cosf(90.0f*PID*y),1.0f,0.5f+0.5f*sinf(90.0f*PID*y));
 				if(y<-2.0f&&y>-2.5f) glColor3f(0.625f,1.0f,0.75f);
 				if(y<-1.0f) y=-y-1.35f;
@@ -1468,7 +1463,7 @@ int DrawGLScene(void) // draw scene
 		glColor3f(1.0f,1.0f,1.0f);
 		glVertexPointer(3,GL_FLOAT,0,disk_vtx);
 		glTexCoordPointer(2,GL_FLOAT,0,disk_tex);
-		for(i=0;i<8;i++)
+		for(int i=0;i<8;i++)
 			{
 			glLoadIdentity();
 			glTranslatef(0,0,end_radius+intro_radius);
@@ -1477,7 +1472,7 @@ int DrawGLScene(void) // draw scene
 			glTranslatef(0,0,end_radius+radius);
 			glDrawArrays(GL_QUADS,0,24);
 			}
-		for(i=0;i<4;i++)
+		for(int i=0;i<4;i++)
 			{
 			glLoadIdentity();
 			glTranslatef(0,0,end_radius+intro_radius);
@@ -1499,7 +1494,7 @@ int DrawGLScene(void) // draw scene
 		glEnableClientState(GL_COLOR_ARRAY);
 		glVertexPointer(3,GL_FLOAT,0,triforce_vtx);
 		glColorPointer(3,GL_FLOAT,0,triforce_col);
-		for(i=0;i<8;i++)
+		for(int i=0;i<8;i++)
 			{
 			glLoadIdentity();
 			glTranslatef(0,0,end_radius+intro_radius);
@@ -1509,7 +1504,7 @@ int DrawGLScene(void) // draw scene
 			glTranslatef(0,0.75f,0.125f);
 			glDrawArrays(GL_QUADS,0,60);
 			}
-		for(i=0;i<4;i++)
+		for(int i=0;i<4;i++)
 			{
 			glLoadIdentity();
 			glTranslatef(0,0,end_radius+intro_radius);
@@ -1558,18 +1553,18 @@ int DrawGLScene(void) // draw scene
 		a_x=-36.0f;
 		a_y=90.0f;//+tekk_zoom_value*4.0f*sinf(main_angle*2.0f);
 		a_z=0;//tekk_zoom_value*4.0f*sinf(main_angle*2.0f);
-		y=0;
-		k=0;
+		float y=0;
+		int k=0;
 		float z1,z2 = 0;
 		float a1=main_angle*0.5f+tekk_zoom_value*4.0f;
-		for(i=0;i<tekk_bar;i++)
+		for(int i=0;i<tekk_bar;i++)
 			{
 			angle=tekk_radius*cosf(1080.0f*PID/tekk_bar*i+cosf(i*1.5f)+a1);
 			float a2=main_angle*2.0f+tekk_zoom_value*24.0f;
-			for(j=0;j<tekk_n;j++)
+			for(int j=0;j<tekk_n;j++)
 				{
 				float angle2=1080.0f*PID/tekk_n*j+a2;
-				z=sync2_value*2.0f*(rand()%100)/200.0f*cosf((main_angle-sync2_angle)*16.0f);
+				float z=sync2_value*2.0f*(rand()%100)/200.0f*cosf((main_angle-sync2_angle)*16.0f);
 				z1=z2;
 				z2=(float)fabs(angle+tekk_radius*sinf(angle2))+z;
 				if(z2<0.5f) z2=0.5f;
@@ -1604,15 +1599,15 @@ int DrawGLScene(void) // draw scene
 	// draw hidden
 	if(hidden_flag)
 		{
-		w=0.25f;
-		h=0.25f;
+		float w=0.25f;
+		float h=0.25f;
 		glBlendFunc(GL_SRC_COLOR,GL_SRC_ALPHA);
 		a_x=20.0f*cosf(main_angle*0.375f);
 		a_y=30.0f*sinf(main_angle*0.25f);
 		a_z=main_angle*8.0f;
 		glVertexPointer(2,GL_FLOAT,0,hidden_vtx);
 		glTexCoordPointer(2,GL_FLOAT,0,hidden_tex);
-		for(i=0;i<star_n;i++)
+		for(int i=0;i<star_n;i++)
 			{
 			star_z[i]+=(main_angle-main_angle_prv)*2.0f;
 			if(star_z[i]>0)
@@ -1623,7 +1618,7 @@ int DrawGLScene(void) // draw scene
 				star_y[i]=radius*sinf(star_angle[i]);
 				star_z[i]-=hidden_radius;
 				}
-			c=(star_z[i]<-2.0f)?1.0f:-star_z[i]*0.5f;
+			float c=(star_z[i]<-2.0f)?1.0f:-star_z[i]*0.5f;
 			glLoadIdentity();
 			glColor3f(c,c,c);
 			glRotatef(a_x,1.0f,0,0);
@@ -1673,7 +1668,7 @@ int DrawGLScene(void) // draw scene
 		glEnableClientState(GL_COLOR_ARRAY);
 		glBlendFunc(GL_SRC_COLOR,GL_DST_COLOR);
 		angle=180.0f/copper_n*PID;
-		for(i=0;i<copper_n;i++)
+		for(int i=0;i<copper_n;i++)
 			{
 			copper_col[i*12   ]=0.625f-0.125f*cosf(main_angle*0.5f+angle*i);
 			copper_col[i*12+1 ]=0.625f;
@@ -1700,11 +1695,13 @@ int DrawGLScene(void) // draw scene
 		{
 		glVertexPointer(2,GL_INT,0,liner_vtx);
 		glBlendFunc(GL_ONE,GL_ONE);
-		j=0;
+		int j=0;
 		liner_line=-1;
 		liner_count=(int)((main_angle-liner_angle)*20.0f)-5;
 		if(liner_count>liner_length) liner_count=liner_length;
-		for(i=0;i<liner_count;i++)
+		float x = 0;
+		float y = 0;
+		for(int i=0;i<liner_count;i++)
 			{
 			j++;
 			car=(byte)txt[i];
@@ -1779,10 +1776,12 @@ int DrawGLScene(void) // draw scene
 		glVertexPointer(2,GL_INT,0,dos_vtx);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE,GL_ONE);
-		j=0;
+		int j=0;
 		liner_line=-1;
 		liner_count=liner_length;
-		for(i=0;i<liner_count;i++)
+		float x = 0;
+		float y = 0;
+		for(int i=0;i<liner_count;i++)
 			{
 			j++;
 			car=(byte)txt[i];
@@ -1815,7 +1814,7 @@ int DrawGLScene(void) // draw scene
 		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 		angle=(main_angle-flash_angle)*1.0f;
 		if(angle>90.0f*PID) flash_flag=false;
-		c=sinf(angle);
+		float c=sinf(angle);
 		glColor3f(c,c,c);
 		glLoadIdentity();
 		glVertexPointer(2,GL_INT,0,scanline_vtx);
@@ -1826,7 +1825,7 @@ int DrawGLScene(void) // draw scene
 		{
 		glDisable(GL_TEXTURE_2D);
 		glBlendFunc(GL_ZERO,GL_SRC_COLOR);
-		c=speed_value;
+		float c=speed_value;
 		glColor3f(c,c,c);
 		glLoadIdentity();
 		glVertexPointer(2,GL_INT,0,scanline_vtx);
@@ -1847,7 +1846,7 @@ int DrawGLScene(void) // draw scene
 	// draw loop
 	if(loop_counter>0)
 		{
-		c=beat_value;
+		float c=beat_value;
 		glLoadIdentity();
 		glBlendFunc(GL_SRC_COLOR,GL_ONE);
 		glTranslated(loop_margin,screen_h-loop_h-loop_margin,0);
@@ -1866,8 +1865,8 @@ int DrawGLScene(void) // draw scene
 		glLoadIdentity();
 		glColor3f(0.25f,0.25f,0.25f);
 		glTranslated(-debug_w+2*ratio_2d,debug_h+2*ratio_2d,0);
-		j=0;
-		for(i=0;i<(int)strlen(debug);i++)
+		int j=0;
+		for(int i=0;i<(int)strlen(debug);i++)
 			{
 			j++;
 			car=(byte)debug[i];
@@ -2267,7 +2266,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 				glenz_flag=false;
 				//
 				hidden=true;
-				for(i=0;i<star_n;i++)
+				for(int i=0;i<star_n;i++)
 					{
 					radius=hidden_radius*0.025f+((rand()%(int)(hidden_radius*75))*0.01f);
 					radius=1.75f+((radius<0.0f)?-radius:radius);
