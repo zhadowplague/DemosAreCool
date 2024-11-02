@@ -70,9 +70,9 @@ float	main_angle;				// main angle
 float	main_angle_prv;		// previous main angle
 /* color variable				*/
 float color_inc=0.025f;	// color incrementation
-float base_r=0.25f;			// base r
-float base_g=0.35f;			// base g
-float base_b=0.3f;			// base b
+float base_r=0.4f;			// base r
+float base_g=0.4f;			// base g
+float base_b=0.2f;			// base b
 float bgd_base_r=base_r;// red base value
 float bgd_base_g=base_g;// green base value
 float bgd_base_b=base_b;// blue base value
@@ -121,11 +121,12 @@ float cube_w=cube_size*0.5f;// width
 float cube_h=cube_size*2.0f;// height
 float cube_ratio=PID*cube_n;// ratio
 float cube_angle=0;			// angle
-float cube_vtx[60];			// cube vertex array
-float cube_tex[]={ 0,0.745f,0.25f,0.745f,0.25f,0.75f,0,0.75f,0,0.745f,0,0.75f,0.25f,0.75f,0.25f,0.745f,0.25f,0.735f,0,0.735f,0,0.74f,0.25f,0.74f,0,0.735f,0.25f,0.735f,0.25f,0.74f,0,0.74f,0.25f,0.75f,0.25f,1.0f,0,1.0f,0,0.75f };
-float cube_col[]={ 0,0,0,0,0,0,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0,0,0,0,0,0,0,0,0,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0,0,0,0,0,0,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f };
-float circuit_tex[]={ 0.75f,0.75f,0.75f,1.0f,0.625f,1.0f,0.625f,0.75f,0.625f,0.75f,0.625f,1.0f,0.5f,1.0f,0.5f,0.75f };
-float circuit_vtx[]={ cube_w,0,cube_w,cube_w,0,-cube_w,0,0,-cube_w,0,0,cube_w,0,0,cube_w,0,0,-cube_w,-cube_w,0,-cube_w,-cube_w,0,cube_w };
+float cube_vtx[72];			// cube vertex array
+float cube_tex[40]={ 0,0.745f,0.25f,0.745f,0.25f,0.75f,0,0.75f,0,0.745f,0,0.75f,0.25f,0.75f,0.25f,0.745f,0.25f,0.735f,0,0.735f,0,0.74f,0.25f,0.74f,0,0.735f,0.25f,0.735f,0.25f,0.74f,0,0.74f,0.25f,0.75f,0.25f,1.0f,0,1.0f,0,0.75f };
+float cube_white_col[72];         // cube white vertex colors
+float cube_blue_col[72];         // cube brown vertex colors
+float circuit_tex[16]={ 0.75f,0.75f,0.75f,1.0f,0.625f,1.0f,0.625f,0.75f,0.625f,0.75f,0.625f,1.0f,0.5f,1.0f,0.5f,0.75f };
+float circuit_vtx[24]={ cube_w,0,cube_w,cube_w,0,-cube_w,0,0,-cube_w,0,0,cube_w,0,0,cube_w,0,0,-cube_w,-cube_w,0,-cube_w,-cube_w,0,cube_w };
 float chipset_vtx[60*9];// chip vertex array
 float chipset_tex[40*9];// chip texture array
 /* circuit variable			*/
@@ -145,35 +146,35 @@ int loop_vtx[8];				// vertex array
 float loop_tex[]={ 0.46484375f,0.76953125f,0.25f,0.76953125f,0.25f,0.75f,0.46484375f,0.75f };
 /* glenz variable */
 bool glenz_flag=false;
-//27 per frame
+int glenz_frame=0;
 float glenz_pos[54]=
 {
 	//frame1
-	0,0,0, //body
 	0,0,2.6, //head
-	1,-1.5,0.5, //right arm inner
-	1,-2,0, //right arm outer
+	0,0,0, //body
+	1,-1.5,0.5, //back arm inner
+	1,-2,0, //back arm outer
 	-0.5, -0.5, -2, //crooked leg inner
 	-0.5, -1, -2.5, //crooked leg outer
-	-1,1.5,0.5, //left arm inner
-	-1,2,1, //left arm outer
+	-1,1.5,0.5, //front arm inner
+	-1,2,1, //front arm outer
 	0.5, 0.5, -2.5, //straight leg
 	//frame2
-	0,0,0, //body
 	0,0,2.6, //head
-	1,-1.5,0.5, //right arm inner
-	1,-2,0, //right arm outer
-	-0.5, -0.5, -2, //crooked leg inner
-	-0.5, -1, -2.5, //crooked leg outer
-	-1,1.5,0.5, //left arm inner
-	-1,2,1, //left arm outer
-	0.5, 0.5, -2.5, //straight leg
+	0,0,0, //body
+	-1,-1.5,0.5, //back arm inner
+	-1,-2,0, //back arm outer
+	0.5, 0.5, -2, //crooked leg inner
+	0.5, 0, -2.5, //crooked leg outer
+	1,1.5,0.5, //front arm inner
+	1,2,1, //front arm outer
+	-0.5, -0.5, -2.5, //straight leg
 };
 float glenz_scale[54]=
 {
 	//frame1
-	0.7, 1, 1.6, //body
 	1, 1, 1, //head
+	0.7, 1, 1.6, //body
 	0.5, 1, 0.5, //right arm inner
 	0.5, 0.5, 1, //right arm outer
 	0.5, 0.5, 1, //crooked leg inner
@@ -182,8 +183,8 @@ float glenz_scale[54]=
 	0.5, 0.5, 1, //left arm outer
 	0.5, 0.5, 1.5, //straight leg
 	//frame2
-		0.7, 1, 1.6, //body
 	1, 1, 1, //head
+	0.7, 1, 1.6, //body
 	0.5, 1, 0.5, //right arm inner
 	0.5, 0.5, 1, //right arm outer
 	0.5, 0.5, 1, //crooked leg inner
@@ -410,6 +411,10 @@ void init3d(GLsizei width, GLsizei height)
 	gluPerspective(fov, (float)((float)width/(float)height), nearplane, farplane); // aspect ratio
 	glMatrixMode(GL_MODELVIEW);		// select modelview matrix
 	glLoadIdentity();							// reset modelview matrix
+	// Set camera position and orientation
+	gluLookAt(0, -5 +cosf(main_angle*0.25f), 2+cosf(main_angle*0.25f),                    // Camera position
+		0, 0, 0,           // Look-at point
+		1, 0, 0);                      // Up vector
 }
 
 void init2d(GLsizei width, GLsizei height)
@@ -507,7 +512,7 @@ void glenz() {
 	int x=0;
 	int y=1;
 	int z=2;
-	for (int i=0; i<27; i+=3)
+	for (int i=0; i<27*2; i+=3)
 	{
 		float a=glenz_pos[i+x];
 		glenz_pos[i+x]=glenz_pos[i+y];
@@ -515,6 +520,10 @@ void glenz() {
 		a=glenz_pos[i+x];
 		glenz_pos[i+x]=glenz_pos[i+z];
 		glenz_pos[i+z]=a;
+
+		glenz_pos[i+x]*=0.5;
+		glenz_pos[i+y]*=0.5;
+		glenz_pos[i+z]*=0.5;
 
 		a=glenz_scale[i+x];
 		glenz_scale[i+x]=glenz_scale[i+y];
@@ -566,8 +575,30 @@ void rectangle(int x, int y, int w, int h)
 
 void cube(float w, float h)
 {
-	float vertex[]={ -w,0,w,w,0,w,w,h,w,-w,h,w,-w,0,-w,-w,h,-w,w,h,-w,w,0,-w,-w,0,-w,-w,0,w,-w,h,w,-w,h,-w,w,0,w,w,0,-w,w,h,-w,w,h,w,w,h,w,w,h,-w,-w,h,-w,-w,h,w };
-	for (int i=0; i<60; i++) cube_vtx[i]=vertex[i];
+	float vertex[]={
+		// Front face
+		   -w/2, -h/2,  w/2,    w/2, -h/2,  w/2,    w/2,  h/2,  w/2,   -w/2,  h/2,  w/2,
+		   // Back face
+		   -w/2, -h/2, -w/2,   -w/2,  h/2, -w/2,    w/2,  h/2, -w/2,    w/2, -h/2, -w/2,
+		   // Left face
+		   -w/2, -h/2, -w/2,   -w/2,  h/2, -w/2,   -w/2,  h/2,  w/2,   -w/2, -h/2,  w/2,
+		   // Right face
+			w/2, -h/2, -w/2,    w/2,  h/2, -w/2,    w/2,  h/2,  w/2,    w/2, -h/2,  w/2,
+			// Top face
+			-w/2,  h/2,  w/2,    w/2,  h/2,  w/2,    w/2,  h/2, -w/2,   -w/2,  h/2, -w/2,
+			// Bottom face
+			-w/2, -h/2,  w/2,   -w/2, -h/2, -w/2,    w/2, -h/2, -w/2,    w/2, -h/2,  w/2
+	};
+	for (int i=0; i<72; i++)
+	{
+		cube_vtx[i]=vertex[i];
+		cube_white_col[i]=1;
+	}
+	for (int i=0; i<=24; i+=3) {
+		cube_blue_col[i]=34.0/255.0;
+		cube_blue_col[i+1]=67.0/255.0;
+		cube_blue_col[i+2]=182.0/255.0;
+	}
 }
 
 void copper()
@@ -630,6 +661,7 @@ int InitGL(void)
 	glDepthMask(GL_TRUE);							// do not write z-buffer
 	glEnable(GL_CULL_FACE);						// disable cull face
 	glCullFace(GL_BACK);							// don't draw front face
+	glDisable(GL_LIGHTING);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	// fog
@@ -645,7 +677,7 @@ int InitGL(void)
 	timer=new Timer();
 	calc_txt();
 	glenz();
-	cube(cube_w, cube_size*0.75f);
+	cube(1, 1);
 	chipset(cube_w*0.25f, cube_w*0.0625f, cube_w*0.5f, cube_w*0.1f, cube_w*0.0625f);
 	disk(2.0f);
 	triforce(1.0f, 0.125f, 0.875f, 0.75f, 0.25f, 0.625f, 0.5f, 0);
@@ -789,7 +821,7 @@ int DrawGLScene(void) // draw scene
 	{
 		dos_flag=false;
 		mod_play=true;
-		//FMUSIC_PlaySong(mod);
+		FMUSIC_PlaySong(mod);
 		timer_music=timer_global;
 	}
 	if (mod_play)
@@ -813,13 +845,14 @@ int DrawGLScene(void) // draw scene
 				if ((mod_ord==21)&&(mod_row==8||mod_row==24||mod_row==56)) synchro();
 				if ((mod_ord>27&&mod_ord<32)&&(mod_row%8==0)) sync2(1.75f);
 				if ((loop_counter>0)&&(mod_row%16==0)) beat();
+				if (mod_ord>0&&mod_row%4==0) glenz_frame=(glenz_frame==0 ? 1 : 0);
 				switch (mod_ord)
 				{
 				case 0:
 					switch (mod_row)
 					{
 					case 0:
-						intro_flag=true;
+						//intro_flag=true;
 						glenz_flag=true;
 						flash();
 						intro_i=1;
@@ -861,7 +894,7 @@ int DrawGLScene(void) // draw scene
 					case  0: intro_i=19; synchro(); break;
 					case  6: intro_i=20; synchro(); break;
 					case 12: intro_i=21; synchro(); break;
-					case 32: speed(); break;
+					case 18: speed(); break;
 					}
 					break;
 				case 4:
@@ -877,7 +910,7 @@ int DrawGLScene(void) // draw scene
 						speed_flag=false;
 						speed_value=1.0f;
 						end_flag=false;
-						glenz_flag=false;
+						//glenz_flag=false;
 						calc_txt();
 						flash();
 						fov_anim();
@@ -1223,7 +1256,7 @@ int DrawGLScene(void) // draw scene
 			glRotatef(a_x, 1.0f, 0, 0);
 			glRotatef(a_y, 0, 1.0f, 0);
 			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
-			glColorPointer(3, GL_FLOAT, 0, cube_col);
+			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 			glDrawArrays(GL_QUADS, 0, 20);
 		}
 		// draw circuit
@@ -1376,8 +1409,8 @@ int DrawGLScene(void) // draw scene
 	// draw greeting
 	if (greeting_flag)
 	{
-		int greeting_x=14;
-		int greeting_y=(int)(14.0f/screen_w*screen_h+2);
+		const int greeting_x=14;
+		const int greeting_y=(int)(14.0f/screen_w*screen_h+2);
 		float w=4.125f;
 		float h=4.25f;
 		float x=-w*(greeting_x-1)*0.5f+0.15f*synchro_value*cosf((main_angle-synchro_angle)*16.0f);
@@ -1465,20 +1498,6 @@ int DrawGLScene(void) // draw scene
 		float angle2=sinf(main_angle*0.25f);
 		if (speed_flag) intro_radius=1.0f+7.0f-7.0f*speed_value;
 		radius=-(float)fabs(0.625f*synchro_value*cosf((main_angle-synchro_angle)*8.0f));
-		//glDisable(GL_TEXTURE_2D);
-		//glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
-		//glLoadIdentity();
-		//glTranslatef(0, 0, end_radius+intro_radius);
-		//glRotatef(main_angle*16.0f, angle1, 0, angle2);
-		//glEnableClientState(GL_COLOR_ARRAY);
-		//glVertexPointer(3, GL_FLOAT, 0, glenz_vtx);
-		//glColorPointer(4, GL_FLOAT, 0, glenz_col);
-		//glScalef(10.0f, 11.0f, 11.0f);
-		//glDrawArrays(GL_TRIANGLES, 0, 144);
-		//glScalef(0.875f, 0.875f, 0.875f);
-		//glDrawArrays(GL_TRIANGLES, 0, 144);
-		//glDisableClientState(GL_COLOR_ARRAY);
-		//glEnable(GL_TEXTURE_2D);
 		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		glVertexPointer(3, GL_FLOAT, 0, disk_vtx);
@@ -1668,21 +1687,35 @@ int DrawGLScene(void) // draw scene
 	// draw glenz
 	if (glenz_flag)
 	{
+		int frame=27*glenz_frame;
 		glDisable(GL_TEXTURE_2D);
-		for (int i=0; i<27; i+=3) {
-			glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
-			glLoadIdentity();
+		//glDisable(GL_BLEND);
+		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
+		glPushMatrix();
+		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
+		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
+		glColorPointer(3, GL_FLOAT, 0, cube_white_col);
+		glDrawArrays(GL_QUADS, 0, 24);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glPopMatrix();
+		
+		int endFrame=27*(glenz_frame+1);
+		for (int i=frame+3; i<endFrame; i+=3) {
+			glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
+			glPushMatrix();
+			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]);
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
-			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]-20);
-			//glRotatef(main_angle*16.0f, cosf(main_angle*0.25f), 0, sinf(main_angle*0.25f));
 			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-			glColorPointer(2, GL_FLOAT, 0, cube_col);
-			glDrawArrays(GL_QUADS, 0, 20);
+			glColorPointer(3, GL_FLOAT, 0, cube_blue_col);
+			glDrawArrays(GL_QUADS, 0, 24);
 			glDisableClientState(GL_COLOR_ARRAY);
+			glPopMatrix();
 		}
-
 		glEnable(GL_TEXTURE_2D);
+		//glEnable(GL_BLEND);
 	}
 	init2d(screen_w, screen_h);
 	// draw copper
