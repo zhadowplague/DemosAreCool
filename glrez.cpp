@@ -105,8 +105,8 @@ char* txt_info3="\r\r\r  Text3 \r                 \r                 ";
 char* txt_info4="\r\r\r  Text4 \r                 \r                 ";
 char* txt_info5="\r\r\r  Text5 \r                 \r                 ";
 char* txt_hidden1="\r\r\r      - * -      \r\r Congratulations!\r\r  You just found \r the hidden part!\r\r      - * -      \r                 \r                 ";
-char* txt_hidden2="\r\r\rThanks goes to:    \r\r keops: timer code \r ryg:     kkrunchy \r\r4mat,coda,bubsy for\rfor bpm/sync help! \r                   \r                   ";
-char* txt_hidden3="\r\r\r   - Credits -   \r\r code:    bin+rez \r music:      rez \r\r      - * -      \r                 \r                 ";
+char* txt_hidden2="\r\r\rThanks goes to:    \r\r keops: timer code \r ryg:     kkrunchy \r\r4mat,coda,bubsy \r                   \r                   ";
+char* txt_hidden3="\r\r\r   - Credits -   \r\r code:    rez \r code:    bin \r music:      bin \r\r      - * -      \r                 \r                 ";
 char* txt_hidden4="\r\r\r  Text \r                 \r                 ";
 char* txt=txt_dos;
 /* cube variable				*/
@@ -174,7 +174,9 @@ float loop_tex[]={ 0.46484375f,0.76953125f,0.25f,0.76953125f,0.25f,0.75f,0.46484
 /* glenz variable */
 bool glenz_flag=false;
 int glenz_frame=0;
-float glenz_pos[54]=
+int glenz_scale_frame=0;
+const int glenz_n = 81;
+float glenz_pos[glenz_n]=
 {
 	//frame1
 	0,0,2.6, //head
@@ -196,8 +198,18 @@ float glenz_pos[54]=
 	1,1.5,0.5, //front arm inner
 	1,2,1, //front arm outer
 	-0.5, -0.5, -2.5, //straight leg
+	//frame3
+	0,0,2.6, //head
+	0,0,0, //body
+	-1,0,0.5, //straight arm
+	1,0,0.5, //straight arm
+	-0.5, 0, -2.5, //straight leg
+	0.5, 0, -2.5, //straight leg
+	//0, 0, 0, //empty
+	//0, 0, 0, //empty
+	//0, 0, 0, //empty
 };
-float glenz_scale[54]=
+float glenz_scale[glenz_n]=
 {
 	//frame1
 	1, 1, 1, //head
@@ -219,17 +231,27 @@ float glenz_scale[54]=
 	0.5, 1, 0.5, //left arm inner
 	0.5, 0.5, 1, //left arm outer
 	0.5, 0.5, 1.5, //straight leg
+	//frame3
+	1, 1, 1, //head
+	0.7, 1, 1.6, //body
+	0.5, 0.5, 1.5, //straight arm
+	0.5, 0.5, 1.5, //straight arm
+	0.5, 0.5, 1.5, //straight leg
+	0.5, 0.5, 1.5, //straight leg
+	//0, 0, 0, //empty
+	//0, 0, 0, //empty
+	//0, 0, 0, //empty
 };
 /* intro variable				*/
 bool intro_flag=false;	// flag
-int intro_n=12;					// number
+const int intro_n=36;					// number
 int intro_i=1;					// counter
 float intro_radius;			// radius
 float intro_angle=0;		// angle
 /* tunnel variable			*/
 bool tunnel_flag=false;	// flag
-int tunnel_n1=64;				// depth number
-int tunnel_n2=16;				// circle number
+const int tunnel_n1=64;				// depth number
+const int tunnel_n2=16;				// circle number
 float tunnel_angle=0;		// angle
 float tunnel_x[64];			// position x
 float tunnel_y[64];			// position y
@@ -239,11 +261,10 @@ float tunnel_radius=1.5f;// radius
 float tunnel_path=4.0f;	// path radius
 float tunnel_vtx[]={ -0.125f,-0.1875f,0.125f,-0.1875f,0.125f,0.1875f,-0.125f,0.1875f };
 float tunnel_tex[]={ 0.25f,0.78125f,0.3125f,0.78125f,0.3125f,0.875f,0.25f,0.875f };
-int star_n=2560;				// star number
-float star_x[2560];			// position x
-float star_y[2560];			// position y
-float star_z[2560];			// position z
-float star_angle[2560];	// angle
+const int star_n=2560;		// total star number
+float star_x[star_n];			// position x
+float star_y[star_n];			// position y
+float star_z[star_n];			// position z
 float star_vtx[]={ -0.0375f,-0.0375f,0.0375f,-0.0375f,0.0375f,0.0375f,-0.0375f,0.0375f };
 float star_tex[]={ 0.40625f,0.96875f,0.375f,0.96875f,0.375f,1.0f,0.40625f,1.0f };
 /* greeting variable		*/
@@ -539,7 +560,7 @@ void glenz() {
 	int x=0;
 	int y=1;
 	int z=2;
-	for (int i=0; i<27*2; i+=3)
+	for (int i=0; i<glenz_n; i+=3)
 	{
 		float a=glenz_pos[i+x];
 		glenz_pos[i+x]=glenz_pos[i+y];
@@ -551,7 +572,7 @@ void glenz() {
 		glenz_pos[i+x]*=0.5;
 		glenz_pos[i+y]*=0.5;
 		glenz_pos[i+z]*=0.5;
-
+		
 		a=glenz_scale[i+x];
 		glenz_scale[i+x]=glenz_scale[i+y];
 		glenz_scale[i+y]=a;
@@ -695,12 +716,13 @@ int InitGL(void)
 	triforce(1.0f, 0.125f, 0.875f, 0.75f, 0.25f, 0.625f, 0.5f, 0);
 	for (int i=0; i<star_n; i++)
 	{
-		star_angle[i]=(rand()%3600)*0.1f;
+		float angle=(rand()%3600)*0.1f;
 		radius=((rand()%1000)*0.01f);
 		radius=tunnel_radius*1.125f+((radius<0.0f) ? -radius : radius);
-		star_x[i]=radius*cosf(star_angle[i]);
-		star_y[i]=radius*sinf(star_angle[i]);
-		star_z[i]=-(rand()%(int)(tunnel_depth*tunnel_n1*1000))*0.001f;
+		star_x[i]=radius*cosf(angle);
+		star_y[i]=radius*sinf(angle);
+		star_z[i]=(rand()%(int)(tunnel_depth*tunnel_n1*1000))*0.001f;
+		if (angle>180) star_z[i]=-star_z[i];
 	}
 	float y=0;
 	int k=0;
@@ -857,7 +879,7 @@ int DrawGLScene(void) // draw scene
 				if ((mod_ord==21)&&(mod_row==8||mod_row==24||mod_row==56)) synchro();
 				if ((mod_ord>27&&mod_ord<32)&&(mod_row%8==0)) sync2(1.75f);
 				if ((loop_counter>0)&&(mod_row%16==0)) beat();
-				if (mod_ord>0&&mod_row%4==0) glenz_frame=(glenz_frame==0 ? 1 : 0);
+				if (mod_ord>3&&mod_row%4==0) glenz_frame=(glenz_frame==0 ? 1 : 0);
 				switch (mod_ord)
 				{
 				case 0:
@@ -867,38 +889,46 @@ int DrawGLScene(void) // draw scene
 						intro_flag=true;
 						tunnel_flag=true;
 						glenz_flag=true;
+						cube_flag=false;
+						circuit_flag=false;
+						logo_flag=true;
+						glenz_frame=2;
 						flash();
-						intro_i=1;
-						synchro();
+						intro_i=intro_n;
 						break;
-					case  6: intro_i=2; synchro(); break;
-					case 12: intro_i=3; synchro(); break;
-					case 32: intro_i=4; synchro(); break;
-					case 38: intro_i=5; synchro(); break;
-					case 44: intro_i=6; synchro(); break;
+					case  3: synchro(); break;
+					case  6: intro_i--; synchro(); break;
+					case 2:
+					case 4:
+					case 12:
+					case 14:
+					case 16:
+					case 18:
+					case 24:
+					case 26:
+					case 28:
+					case 30:
+						intro_i--; break;
 					}
 					break;
 				case 1:
-					switch (mod_row)
-					{
-					case  0: intro_i=7; synchro(); break;
-					case  6: intro_i=8; synchro(); break;
-					case 12: intro_i=9; synchro(); break;
-					case 32: intro_i=10; synchro(); break;
-					case 38: intro_i=11; synchro(); break;
-					case 44: intro_i=12; synchro(); break;
-					case 59: move(); break;
-					}
-					break;
 				case 2:
 					switch (mod_row)
 					{
-					case  0: synchro(); break;
-					case  6: synchro(); break;
-					case 12: synchro(); break;
-					case 32: synchro(); break;
-					case 38: synchro(); break;
-					case 44: synchro(); break;
+					case 0:
+					case 2:
+					case 4: 
+					case 12:
+					case 14:
+					case 16:
+					case 18:
+					case 24:
+					case 26:
+					case 28:
+					case 30:
+						intro_i--; break;
+					case  3: synchro(); break;
+					case  6: intro_i--; synchro(); break;
 					}
 					break;
 				case 3:
@@ -913,6 +943,7 @@ int DrawGLScene(void) // draw scene
 				case 4:
 					if (mod_row==0)
 					{
+						tunnel_flag=false;
 						cube_flag=true;
 						cube_angle=main_angle;
 						circuit_flag=false;
@@ -923,7 +954,7 @@ int DrawGLScene(void) // draw scene
 						speed_flag=false;
 						speed_value=1.0f;
 						end_flag=false;
-						//glenz_flag=false;
+						logo_flag=true;
 						calc_txt();
 						flash();
 						fov_anim();
@@ -1359,26 +1390,28 @@ int DrawGLScene(void) // draw scene
 				glPopMatrix();
 			}
 		}*/
-		float x=0;
-		float y=0;
 		// draw star
 		glVertexPointer(2, GL_FLOAT, 0, star_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, star_tex);
 		glColor3f(1.0f, 1.0f, 1.0f);
-		for (int i=0; i<star_n; i++)
+		int stars_to_render=star_n*((float)intro_i/(float)intro_n);
+		for (int i=0; i<stars_to_render; i++)
 		{
-			star_z[i]+=(main_angle-main_angle_prv)*1.5f;
-			if (star_z[i]>0.0f)
-			{
-				radius=((rand()%1000)*0.01f);
-				radius=tunnel_radius*1.25f+((radius<0.0f) ? -radius : radius);
-				star_x[i]=x+radius*cosf(star_angle[i]);
-				star_y[i]=y+radius*sinf(star_angle[i]);
-				star_z[i]-=tunnel_n1*tunnel_depth;
-			}
 			glPushMatrix();
-			glRotatef(a_z, 0, 0, 1.0f);
-			glTranslatef(p_x+star_x[i], p_y+star_y[i], star_z[i]);
+			glTranslatef(star_x[i], star_y[i], star_z[i]);
+			float modelview[16];
+			glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
+			modelview[0]=1.0f;
+			modelview[1]=0.0f;
+			modelview[2]=0.0f;
+			modelview[4]=0.0f;
+			modelview[5]=1.0f;
+			modelview[6]=0.0f;
+			modelview[8]=0.0f;
+			modelview[9]=0.0f;
+			modelview[10]=1.0f;
+			glLoadMatrixf(modelview);
+			glRotatef(a_z, 0, 0, 1.0f);			
 			glDrawArrays(GL_QUADS, 0, 4);
 			glPopMatrix();
 		}
@@ -1613,60 +1646,12 @@ int DrawGLScene(void) // draw scene
 		glDisableClientState(GL_COLOR_ARRAY);
 		glEnable(GL_TEXTURE_2D);
 	}
-	// draw hidden
-	if (hidden_flag)
-	{
-		float w=0.25f;
-		float h=0.25f;
-		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
-		a_x=20.0f*cosf(main_angle*0.375f);
-		a_y=30.0f*sinf(main_angle*0.25f);
-		a_z=main_angle*8.0f;
-		glVertexPointer(2, GL_FLOAT, 0, hidden_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, hidden_tex);
-		for (int i=0; i<star_n; i++)
-		{
-			star_z[i]+=(main_angle-main_angle_prv)*2.0f;
-			if (star_z[i]>0)
-			{
-				radius=hidden_radius*0.025f+((rand()%(int)(hidden_radius*75))*0.01f);
-				radius=1.75f+((radius<0.0f) ? -radius : radius);
-				star_x[i]=radius*cosf(star_angle[i]);
-				star_y[i]=radius*sinf(star_angle[i]);
-				star_z[i]-=hidden_radius;
-			}
-			float c=(star_z[i]<-2.0f) ? 1.0f : -star_z[i]*0.5f;
-			glLoadIdentity();
-			glColor3f(c, c, c);
-			glRotatef(a_x, 1.0f, 0, 0);
-			glRotatef(a_y, 0, 1.0f, 0);
-			glRotatef(a_z, 0, 0, 1.0f);
-			glTranslatef(star_x[i], star_y[i], star_z[i]);
-			glRotatef(-a_z, 0, 0, 1.0f);
-			glRotatef(-a_y, 0, 1.0f, 0);
-			glRotatef(-a_x, 1.0f, 0, 0);
-			glRotatef(360.0f, 0, 0, (1.0f-c));
-			glDrawArrays(GL_QUADS, 0, 4);
-		}
-		w=1.0f+synchro_value*0.25f*cosf((main_angle-synchro_angle)*16.0f);
-		h=1.5f+synchro_value*0.25f*sinf((main_angle-synchro_angle)*16.0f);
-		glBlendFunc(GL_ONE, GL_ZERO);
-		glLoadIdentity();
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glRotatef(a_x, 1.0f, 0, 0);
-		glRotatef(a_y, 0, 1.0f, 0);
-		glTranslatef(0, 0, -10.0f);
-		float vertex[]={ -w,-h,w,-h,w,h,-w,h };
-		glVertexPointer(2, GL_FLOAT, 0, vertex);
-		glTexCoordPointer(2, GL_FLOAT, 0, gameboy_tex);
-		glDrawArrays(GL_QUADS, 0, 4);
-	}
 	glDisable(GL_FOG);
 	// draw glenz
 	if (glenz_flag)
 	{
 		int frame=27*glenz_frame;
-		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
+		glBlendFunc(GL_SRC_COLOR, GL_ONE);
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
@@ -2283,22 +2268,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				circuit_flag=false;
 				move_flag=false;
 				speed_flag=false;
-				tunnel_flag=false;
+				tunnel_flag=true;
 				greeting_flag=false;
 				vote_flag=false;
 				end_flag=false;
 				tekk_flag=false;
 				glenz_flag=false;
-				//
 				hidden=true;
-				for (int i=0; i<star_n; i++)
-				{
-					radius=hidden_radius*0.025f+((rand()%(int)(hidden_radius*75))*0.01f);
-					radius=1.75f+((radius<0.0f) ? -radius : radius);
-					star_x[i]=radius*cosf(star_angle[i]);
-					star_y[i]=radius*sinf(star_angle[i]);
-					star_z[i]=-(rand()%(int)(hidden_radius*100))*0.01f;
-				}
 				loop_counter=0;
 				mod_play=false;
 				mod_ord=-1;
