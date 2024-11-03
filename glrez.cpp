@@ -104,10 +104,10 @@ char* txt_info2="\r\r\r  Text2 \r                 \r                 ";
 char* txt_info3="\r\r\r  Text3 \r                 \r                 ";
 char* txt_info4="\r\r\r  Text4 \r                 \r                 ";
 char* txt_info5="\r\r\r  Text5 \r                 \r                 ";
-char* txt_hidden1="\r\r\r      - * -      \r\r Congratulations!\r\r  You just found \r the hidden part!\r\r      - * -      \r                 \r                 ";
-char* txt_hidden2="\r\r\rThanks goes to:    \r\r keops: timer code \r ryg:     kkrunchy \r\r4mat,coda,bubsy \r                   \r                   ";
-char* txt_hidden3="\r\r\r   - Credits -   \r\r code:    rez \r code:    bin \r music:      bin \r\r      - * -      \r                 \r                 ";
-char* txt_hidden4="\r\r\r  Text \r                 \r                 ";
+char* txt_hidden1="\r\r\r   - Credits 1 -   \r\r code:    rez \r code:    bin \r\r      - * -      \r                 \r                 ";
+char* txt_hidden2="\r\r\r   - Credits 2 -   \r\r music: chris \r music:   bin \r\r      - * -      \r                 \r                 ";
+char* txt_hidden3="\r\r\rThanks goes to:    \r\r keops: timer code \r\r4mat,coda,bubsy \r                   \r                   ";
+char* txt_hidden4="\r\r\r  bye \r                 \r                 ";
 char* txt=txt_dos;
 /* cube variable				*/
 bool cube_flag=false;		// flag
@@ -175,7 +175,7 @@ float loop_tex[]={ 0.46484375f,0.76953125f,0.25f,0.76953125f,0.25f,0.75f,0.46484
 bool glenz_flag=false;
 int glenz_frame=0;
 int glenz_scale_frame=0;
-const int glenz_n = 81;
+const int glenz_n=81;
 float glenz_pos[glenz_n]=
 {
 	//frame1
@@ -267,26 +267,12 @@ float star_y[star_n];			// position y
 float star_z[star_n];			// position z
 float star_vtx[]={ -0.0375f,-0.0375f,0.0375f,-0.0375f,0.0375f,0.0375f,-0.0375f,0.0375f };
 float star_tex[]={ 0.40625f,0.96875f,0.375f,0.96875f,0.375f,1.0f,0.40625f,1.0f };
-/* greeting variable		*/
-bool greeting_flag=false;// flag
-float disk_vtx[72];			// vertex array
-float disk_tex[48];			// texture array
-float triforce_vtx[180];// vertex array
-float triforce_col[180];// color array
-/* copper variable			*/
-int copper_n=10;				// number
-int copper_h;						// height
-int copper_vtx[80];			// vertex array
-float copper_col[120];	// color array
 /* vote variable				*/
 bool vote_flag=false;		// flag
 int vote_n1=48;					// number x
 int vote_n2=48;					// number y
 float vote_w=0.5f;			// space between dot
 float vote_vtx[]={ -0.325f,-0.325f,0.325f,-0.325f,0.325f,0.325f,-0.325f,0.325f };
-/* end variable					*/
-bool end_flag=false;		// flag
-float end_radius=-8.0f;	// radius
 /* tekk variable				*/
 bool tekk_flag=false;		// flag
 int tekk_bar=48;				// bar number
@@ -572,7 +558,7 @@ void glenz() {
 		glenz_pos[i+x]*=0.5;
 		glenz_pos[i+y]*=0.5;
 		glenz_pos[i+z]*=0.5;
-		
+
 		a=glenz_scale[i+x];
 		glenz_scale[i+x]=glenz_scale[i+y];
 		glenz_scale[i+y]=a;
@@ -634,60 +620,6 @@ void cube()
 	}
 }
 
-void copper()
-{
-	copper_h=screen_h/copper_n;
-	for (int i=0; i<copper_n; i++)
-	{
-		copper_vtx[i*8]=screen_w;
-		copper_vtx[i*8+1]=copper_h*i;
-		copper_vtx[i*8+2]=0;
-		copper_vtx[i*8+3]=copper_h*i;
-		copper_vtx[i*8+4]=0;
-		copper_vtx[i*8+5]=copper_h*(i+1);
-		copper_vtx[i*8+6]=screen_w;
-		copper_vtx[i*8+7]=copper_h*(i+1);
-	}
-}
-
-void disk(float s)
-{
-	float w=s/128.0f*122.0f;
-	float h=s;
-	float d=s/128.0f*6.0f;
-	float t=1.5f/128.0f;
-	glColor3f(1.0f, 1.0f, 1.0f);
-	float vertex[]={ -w,-h,d,w,-h,d,w,h,d,-w,h,d,w,-h,-d,-w,-h,-d,-w,h,-d,w,h,-d,-w,-h,-d,-w,-h,d,-w,h,d,-w,h,-d,w,h,-d,w,h,d,w,-h,d,w,-h,-d,-w,h,d,w,h,d,w,h,-d,-w,h,-d,-w,-h,-d,w,-h,-d,w,-h,d,-w,-h,d };
-	float texture[]={ 0.5f+t,0,1.0f-t,0,1.0f-t,0.5f,0.5f+t,0.5f,1.0f-t,0,0.5f+t,0,0.5f+t,0.5f,1.0f-t,0.5f,0.5f+t*0.5f,0,0.5f+t*0.75f,0,0.5f+t*0.75f,0.5f,0.5f+t*0.5f,0.5f,1.0f-t*0.5f,0.5f,1.0f-t*0.75f,0.5f,1.0f-t*0.75f,0,1.0f-t*0.5f,0,0.5f+t,0.5f+t*1.0f,1.0f-t,0.5f+t*1.0f,1.0f-t,0.5f+t*0.75f,0.5f+t,0.5f+t*0.75f,0.5f+t,0.5f+t*0.5f,1.0f-t,0.5f+t*0.5f,1.0f-t,0.5f+t*0.25f,0.5f+t,0.5f+t*0.25f };
-	for (int i=0; i<72; i++) disk_vtx[i]=vertex[i];
-	for (int i=0; i<48; i++) disk_tex[i]=texture[i];
-}
-
-void triforce(float radius2, float z, float r1, float g1, float b1, float r2, float g2, float b2)
-{
-	float radius1=radius2*0.5f;
-	float x1=radius1*cosf(PID*30.0f);
-	float y1=radius1*sinf(PID*30.0f);
-	float x2=radius1*cosf(PID*150.0f);
-	float y2=radius1*sinf(PID*150.0f);
-	float x3=radius1*cosf(PID*270.0f);
-	float y3=radius1*sinf(PID*270.0f);
-	float x4=radius2*cosf(PID*90.0f);
-	float y4=radius2*sinf(PID*90.0f);
-	float x5=radius2*cosf(PID*210.0f);
-	float y5=radius2*sinf(PID*210.0f);
-	float x6=radius2*cosf(PID*330.0f);
-	float y6=radius2*sinf(PID*330.0f);
-	glColor3f(r1, g1, b1);
-	float vertex[]={ x1,y1,z,x1,y1,z,x4,y4,z,x2,y2,z,x2,y2,z,x2,y2,z,x5,y5,z,x3,y3,z,x3,y3,z,x3,y3,z,x6,y6,z,x1,y1,z,x1,y1,0,x1,y1,0,x4,y4,0,x2,y2,0,x2,y2,0,x2,y2,0,x5,y5,0,x3,y3,0,x3,y3,0,x3,y3,0,x6,y6,0,x1,y1,0,x1,y1,z,x2,y2,z,x2,y2,0,x1,y1,0,x2,y2,z,x4,y4,z,x4,y4,0,x2,y2,0,x4,y4,z,x1,y1,z,x1,y1,0,x4,y4,0,x2,y2,z,x3,y3,z,x3,y3,0,x2,y2,0,x3,y3,z,x5,y5,z,x5,y5,0,x3,y3,0,x5,y5,z,x2,y2,z,x2,y2,0,x5,y5,0,x3,y3,z,x1,y1,z,x1,y1,0,x3,y3,0,x1,y1,z,x6,y6,z,x6,y6,0,x1,y1,0,x6,y6,z,x3,y3,z,x3,y3,0,x6,y6,0 };
-	float color[]={ r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r1,g1,b1,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2,r2,g2,b2 };
-	for (int i=0; i<180; i++)
-	{
-		triforce_vtx[i]=vertex[i];
-		triforce_col[i]=color[i];
-	}
-}
-
 int InitGL(void)
 {
 	glClearDepth(1.0f);								// set depth buffer
@@ -712,8 +644,6 @@ int InitGL(void)
 	glenz();
 	cube();
 	chipset(cube_w*0.25f, cube_w*0.0625f, cube_w*0.5f, cube_w*0.1f, cube_w*0.0625f);
-	disk(2.0f);
-	triforce(1.0f, 0.125f, 0.875f, 0.75f, 0.25f, 0.625f, 0.5f, 0);
 	for (int i=0; i<star_n; i++)
 	{
 		float angle=(rand()%3600)*0.1f;
@@ -917,7 +847,7 @@ int DrawGLScene(void) // draw scene
 					{
 					case 0:
 					case 2:
-					case 4: 
+					case 4:
 					case 12:
 					case 14:
 					case 16:
@@ -953,7 +883,6 @@ int DrawGLScene(void) // draw scene
 						txt=txt_info1;
 						speed_flag=false;
 						speed_value=1.0f;
-						end_flag=false;
 						logo_flag=true;
 						calc_txt();
 						flash();
@@ -1045,7 +974,6 @@ int DrawGLScene(void) // draw scene
 					{
 						logo_flag=true;
 						tunnel_flag=false;
-						greeting_flag=true;
 						glenz_flag=true;
 						intro_radius=1.0f;
 						liner_flag=true;
@@ -1070,7 +998,6 @@ int DrawGLScene(void) // draw scene
 					{
 						txt=txt_info5;
 						logo_flag=true;
-						greeting_flag=false;
 						vote_flag=true;
 						glenz_flag=false;
 						liner_flag=true;
@@ -1096,7 +1023,6 @@ int DrawGLScene(void) // draw scene
 						vote_flag=false;
 						glenz_flag=true;
 						intro_radius=1.0f;
-						end_flag=true;
 						flash();
 						fov_anim();
 						bgd_base_r=0.3f;
@@ -1127,7 +1053,6 @@ int DrawGLScene(void) // draw scene
 					{
 						logo_flag=true;
 						glenz_flag=false;
-						end_flag=false;
 						tekk_flag=true;
 						liner_flag=false;
 						calc_txt();
@@ -1158,7 +1083,8 @@ int DrawGLScene(void) // draw scene
 				{
 					timer_max=(timer_global-timer_music)*1000.0f;
 					timer_music=timer_global;
-					mod_ord++;
+					int last_ord=mod_ord;
+					mod_ord=FMUSIC_GetOrder(mod);
 					if (mod_ord==0)
 					{
 						logo_flag=true;
@@ -1173,18 +1099,17 @@ int DrawGLScene(void) // draw scene
 						fog_color[2]=bgd_base_b;
 						glFogfv(GL_FOG_COLOR, fog_color);
 					}
-					int ord=mod_ord%4;
-					switch (ord)
-					{
-					case 0: txt=txt_hidden1; break;
-					case 1: txt=txt_hidden2; break;
-					case 2: txt=txt_hidden3; break;
-					case 3: txt=txt_hidden4; break;
+					if (last_ord!=mod_ord) {
+						switch (mod_ord)
+						{
+						case 0: txt=txt_hidden1; calc_txt(); break;
+						case 2: txt=txt_hidden2; calc_txt(); break;
+						case 3: txt=txt_hidden3; calc_txt(); break;
+						case 5: txt=txt_hidden4; calc_txt(); break;
+						}
 					}
-					calc_txt();
 				}
-				if (mod_row%8==4||mod_row==60||mod_row==62) synchro();
-				if (mod_row==56) fade();
+				if (mod_row%8==4) synchro();
 			}
 		}
 	}
@@ -1342,9 +1267,9 @@ int DrawGLScene(void) // draw scene
 		glEnable(GL_BLEND);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
-	if (intro_flag||glenz_flag||tunnel_flag||greeting_flag||vote_flag||tekk_flag||end_flag||hidden_flag)
+	if (intro_flag||glenz_flag||tunnel_flag||vote_flag||tekk_flag||hidden_flag)
 	{
-		fov=fov_base+((!greeting_flag&&!vote_flag&&!end_flag) ? 30.0f : 10.0f);
+		fov=fov_base+((!vote_flag) ? 30.0f : 10.0f);
 		init3d(screen_w, screen_h);
 	}
 	// draw intro
@@ -1411,58 +1336,12 @@ int DrawGLScene(void) // draw scene
 			modelview[9]=0.0f;
 			modelview[10]=1.0f;
 			glLoadMatrixf(modelview);
-			glRotatef(a_z, 0, 0, 1.0f);			
+			glRotatef(a_z, 0, 0, 1.0f);
 			glDrawArrays(GL_QUADS, 0, 4);
 			glPopMatrix();
 		}
 	}
 	glEnable(GL_BLEND);
-	// draw greeting
-	if (greeting_flag)
-	{
-		const int greeting_x=14;
-		const int greeting_y=(int)(14.0f/screen_w*screen_h+2);
-		float w=4.125f;
-		float h=4.25f;
-		float x=-w*(greeting_x-1)*0.5f+0.15f*synchro_value*cosf((main_angle-synchro_angle)*16.0f);
-		float y=-h*(greeting_y-0)*0.5f+(float)fmod(main_angle*2.0f, h);
-		float z=-12.0f;
-		glEnable(GL_TEXTURE_2D);
-		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glVertexPointer(3, GL_FLOAT, 0, disk_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, disk_tex);
-		for (int i=0; i<greeting_x; i++)
-		{
-			for (int j=0; j<greeting_y; j++)
-			{
-				glLoadIdentity();
-				glRotatef(22.5f*cosf(main_angle*0.25f), 1.0f, 0, 0);
-				glTranslatef(x+i*w, y+j*h, z);
-				glRotatef(10.0f, 0, 0, 1.0f);
-				glDrawArrays(GL_QUADS, 0, 24);
-			}
-		}
-		glDisable(GL_TEXTURE_2D);
-		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, triforce_vtx);
-		glColorPointer(3, GL_FLOAT, 0, triforce_col);
-		for (int i=0; i<greeting_x; i++)
-		{
-			for (int j=0; j<greeting_y; j++)
-			{
-				glLoadIdentity();
-				glRotatef(22.5f*cosf(main_angle*0.25f), 1.0f, 0, 0);
-				glTranslatef(x+i*w, y+j*h, z);
-				glRotatef(10.0f, 0, 0, 1.0f);
-				glTranslatef(0, 0.75f, 0.125f);
-				glRotatef((float)fabs(120.0f*synchro_value*cosf((main_angle-synchro_angle)*5.0f)), 0, 0, 1.0f);
-				glDrawArrays(GL_QUADS, 0, 60);
-			}
-		}
-		glDisableClientState(GL_COLOR_ARRAY);
-	}
 	// draw vote
 	glEnable(GL_TEXTURE_2D);
 	if (vote_flag)
@@ -1491,7 +1370,7 @@ int DrawGLScene(void) // draw scene
 				if (y<-2.0f&&y>-2.5f) glColor3f(0.625f, 1.0f, 0.75f);
 				if (y<-1.0f) y=-y-1.35f;
 				if (y<-0.625f) y=-0.5f;
-				glLoadIdentity();
+				glPushMatrix();
 				glTranslatef(p_y, 0, p_z);
 				glRotatef(a_x, 1.0f, 0, 0);
 				glRotatef(a_y, 0, 1.0f, 0);
@@ -1499,82 +1378,9 @@ int DrawGLScene(void) // draw scene
 				glRotatef(-a_y, 0, 1.0f, 0);
 				glRotatef(-a_x, 1.0f, 0, 0);
 				glDrawArrays(GL_QUADS, 0, 4);
+				glPopMatrix();
 			}
 		}
-	}
-	// draw end
-	if (end_flag)
-	{
-		float angle1=cosf(main_angle*0.25f);
-		float angle2=sinf(main_angle*0.25f);
-		if (speed_flag) intro_radius=1.0f+7.0f-7.0f*speed_value;
-		radius=-(float)fabs(0.625f*synchro_value*cosf((main_angle-synchro_angle)*8.0f));
-		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glVertexPointer(3, GL_FLOAT, 0, disk_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, disk_tex);
-		for (int i=0; i<8; i++)
-		{
-			glLoadIdentity();
-			glTranslatef(0, 0, end_radius+intro_radius);
-			glRotatef(main_angle*16.0f, angle1, 0, angle2);
-			glRotatef(22.5f+45.0f*i, 0, 1.0f, 0);
-			glTranslatef(0, 0, end_radius+radius);
-			glDrawArrays(GL_QUADS, 0, 24);
-		}
-		for (int i=0; i<4; i++)
-		{
-			glLoadIdentity();
-			glTranslatef(0, 0, end_radius+intro_radius);
-			glRotatef(main_angle*16.0f, angle1, 0, angle2);
-			glRotatef(90.0f*i, 0, 1.0f, 0);
-			glRotatef(45.0f, 1.0f, 0, 0);
-			glTranslatef(0, 0, end_radius+radius);
-			glDrawArrays(GL_QUADS, 0, 24);
-			glLoadIdentity();
-			glTranslatef(0, 0, end_radius+intro_radius);
-			glRotatef(main_angle*16.0f, angle1, 0, angle2);
-			glRotatef(90.0f*i, 0, 1.0f, 0);
-			glRotatef(-45.0f, 1.0f, 0, 0);
-			glTranslatef(0, 0, end_radius+radius);
-			glDrawArrays(GL_QUADS, 0, 24);
-		}
-		glDisable(GL_TEXTURE_2D);
-		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, triforce_vtx);
-		glColorPointer(3, GL_FLOAT, 0, triforce_col);
-		for (int i=0; i<8; i++)
-		{
-			glLoadIdentity();
-			glTranslatef(0, 0, end_radius+intro_radius);
-			glRotatef(main_angle*16.0f, angle1, 0, angle2);
-			glRotatef(22.5f+45.0f*i, 0, 1.0f, 0);
-			glTranslatef(0, 0, end_radius+radius);
-			glTranslatef(0, 0.75f, 0.125f);
-			glDrawArrays(GL_QUADS, 0, 60);
-		}
-		for (int i=0; i<4; i++)
-		{
-			glLoadIdentity();
-			glTranslatef(0, 0, end_radius+intro_radius);
-			glRotatef(main_angle*16.0f, angle1, 0, angle2);
-			glRotatef(90.0f*i, 0, 1.0f, 0);
-			glRotatef(45.0f, 1.0f, 0, 0);
-			glTranslatef(0, 0, end_radius+radius);
-			glTranslatef(0, 0.75f, 0.125f);
-			glDrawArrays(GL_QUADS, 0, 60);
-			glLoadIdentity();
-			glTranslatef(0, 0, end_radius+intro_radius);
-			glRotatef(main_angle*16.0f, angle1, 0, angle2);
-			glRotatef(90.0f*i, 0, 1.0f, 0);
-			glRotatef(-45.0f, 1.0f, 0, 0);
-			glTranslatef(0, 0, end_radius+radius);
-			glTranslatef(0, 0.75f, 0.125f);
-			glDrawArrays(GL_QUADS, 0, 60);
-		}
-		glDisableClientState(GL_COLOR_ARRAY);
-		glEnable(GL_TEXTURE_2D);
 	}
 	// draw tekk
 	if (tekk_flag)
@@ -1680,35 +1486,6 @@ int DrawGLScene(void) // draw scene
 		glEnable(GL_TEXTURE_2D);
 	}
 	init2d(screen_w, screen_h);
-	// draw copper
-	if (greeting_flag||end_flag||hidden_flag)
-	{
-		glDisable(GL_TEXTURE_2D);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
-		angle=180.0f/copper_n*PID;
-		for (int i=0; i<copper_n; i++)
-		{
-			copper_col[i*12]=0.625f-0.125f*cosf(main_angle*0.5f+angle*i);
-			copper_col[i*12+1]=0.625f;
-			copper_col[i*12+2]=0.625f+0.125f*sinf(main_angle+angle*i);
-			copper_col[i*12+3]=copper_col[i*12];
-			copper_col[i*12+4]=copper_col[i*12+1];
-			copper_col[i*12+5]=copper_col[i*12+2];
-			copper_col[i*12+6]=0.625f-0.125f*cosf(main_angle*0.5f+angle*(i+1));
-			copper_col[i*12+7]=0.625f;
-			copper_col[i*12+8]=0.625f+0.125f*sinf(main_angle+angle*(i+1));
-			copper_col[i*12+9]=copper_col[i*12+6];
-			copper_col[i*12+10]=copper_col[i*12+7];
-			copper_col[i*12+11]=copper_col[i*12+8];
-		}
-		glLoadIdentity();
-		glVertexPointer(2, GL_INT, 0, copper_vtx);
-		glColorPointer(3, GL_FLOAT, 0, copper_col);
-		glDrawArrays(GL_QUADS, 0, copper_n*4);
-		glDisableClientState(GL_COLOR_ARRAY);
-		glEnable(GL_TEXTURE_2D);
-	}
 	// draw liner
 	if (liner_flag)
 	{
@@ -1973,7 +1750,6 @@ int CreateGLWindow(char* title)
 	liner_vtx[5]=(int)(-liner_h*1.5f);
 	liner_vtx[6]=-liner_w;
 	liner_vtx[7]=-liner_h;
-	copper();
 	youtube_vtx[0]=-liner_w;
 	youtube_vtx[1]=(int)(liner_h*1.5f);
 	youtube_vtx[2]=0;
@@ -2269,9 +2045,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				move_flag=false;
 				speed_flag=false;
 				tunnel_flag=true;
-				greeting_flag=false;
 				vote_flag=false;
-				end_flag=false;
 				tekk_flag=false;
 				glenz_flag=false;
 				hidden=true;
