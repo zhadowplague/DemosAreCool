@@ -36,6 +36,8 @@ HDC				hDC=NULL;			// GDI device context
 HGLRC			hRC=NULL;			// rendering context
 HWND			hWnd=NULL;		// window handle
 HINSTANCE	hInstance;		// instance application
+HFONT hFont;
+GLuint fontBase;
 
 int keys[256];					// keyboard array
 int active=true;				// window active flag
@@ -632,7 +634,15 @@ int InitGL(void)
 	glFogf(GL_FOG_END, 24.0f);					// fog end depth
 	// load texture
 	load_tex(IDB_BITMAP1, GL_REPEAT, GL_NEAREST);
-	//create_tex();
+	// Create a font for OpenGL
+	hFont=CreateFont(
+		-16, 0, 0, 0, FW_HEAVY, FALSE, FALSE, FALSE,
+		ANSI_CHARSET, OUT_RASTER_PRECIS, CLIP_DEFAULT_PRECIS,
+		NONANTIALIASED_QUALITY, FF_DONTCARE|DEFAULT_PITCH,
+		"Courier New");
+	SelectObject(hDC, hFont);
+	fontBase=glGenLists(96); // ASCII characters 32-127
+	wglUseFontBitmaps(hDC, 32, 96, fontBase);
 	// initialize some variable
 	timer=new Timer();
 	calc_txt();
@@ -1407,6 +1417,19 @@ int DrawGLScene(void) // draw scene
 				y=(float)(15*ratio_2d+liner_line*(dos_h+4*ratio_2d));
 			}
 		}
+
+		glDisable(GL_TEXTURE_2D);         // Disable textures to prevent color interference
+		glDisable(GL_BLEND);               // Enable blending for smooth edges
+		glRasterPos2f(50, 50);  // Set position
+		// Activate the font's display list
+		glPixelZoom(0.5f, 0.5f);
+		glPushAttrib(GL_LIST_BIT);
+		glListBase(fontBase-32);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		// Render the text
+		glCallLists(strlen(txt), GL_UNSIGNED_BYTE, txt);
+		glPixelZoom(1.0f, 1.0f);
+		glPopAttrib();
 	}
 	// draw flash
 	if (flash_flag)
@@ -1492,6 +1515,8 @@ int DrawGLScene(void) // draw scene
 
 void KillGLWindow(void)
 {
+	glDeleteLists(fontBase, 96);
+	DeleteObject(hFont);
 	if (fullscreen)
 	{
 		ChangeDisplaySettings(NULL, 0);	// switch back to desktop
