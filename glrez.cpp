@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "timer.h"
 #include "minifmod.h"
+#include "glrez.h"
 
 #define PI 3.14159265358979323846f // pi
 #define PID PI/180.0f			// pi ratio
@@ -30,7 +31,6 @@ int mod_ord=-1;					// pattern order
 int mod_row=-1;					// row number
 int mod_prv_row=0;			// previous row number
 int mod_time=0;					// time
-//float mod_tempo=59.625f;// time for one row
 bool mod_play=false;		// flag
 
 HDC				hDC=NULL;			// GDI device context
@@ -68,19 +68,8 @@ float	a_y=0;						// angle y
 float	a_z=0;						// angle z
 float	main_angle;				// main angle
 float	main_angle_prv;		// previous main angle
-/* color variable				*/
-float color_inc=0.025f;	// color incrementation
-float base_r=0.4f;			// base r
-float base_g=0.4f;			// base g
-float base_b=0.2f;			// base b
-float bgd_base_r=base_r;// red base value
-float bgd_base_g=base_g;// green base value
-float bgd_base_b=base_b;// blue base value
-float bgd_r=0;					// red value
-float bgd_g=0;					// green value
-float bgd_b=0;					// blue value
-/* fog variable					*/
-float fog_color[]={ base_r,base_g,base_b,1.0f };	// fog color definition
+/* color/fogvariable				*/
+float fog_color[]={ 0.4f,0.4f,0.2f,1.0f };	// fog color definition
 /* liner variable				*/
 bool liner_flag=false;	// flag
 int car;								// ascii code
@@ -99,11 +88,6 @@ int liner_vtx[8];				// vertex array
 /* text variable				*/
 char* name="Bin - Demos are cool";
 char* txt_dos="\r\r\rThe Bin Demo operating system\rVersion 1.0 No 554\r\rDemos are cool\r\r\r\rF1: display debug infos\r\rF2: wireframe rendering\r\rF3: start now\r\r\r\rSPACE: fullscreen/windowed\r\r\rA>_";
-char* txt_info1="\r\r\r  Bin - \"Demos are cool\"\r\r   A demo inspired by \r\rRazor 1911 - \"Insert no coin\"\r                 \r                 ";
-char* txt_info2="\r\r\r  Text2 \r                 \r                 ";
-char* txt_info3="\r\r\r  Text3 \r                 \r                 ";
-char* txt_info4="\r\r\r  Text4 \r                 \r                 ";
-char* txt_info5="\r\r\r  Text5 \r                 \r                 ";
 char* txt_hidden1="\r\r\r   - Credits 1 -   \r\r code:    rez \r code:    bin \r\r      - * -      \r                 \r                 ";
 char* txt_hidden2="\r\r\r   - Credits 2 -   \r\r music: chris \r music:   bin \r\r      - * -      \r                 \r                 ";
 char* txt_hidden3="\r\r\rThanks goes to:    \r\r keops: timer code \r\r4mat,coda,bubsy \r                   \r                   ";
@@ -246,21 +230,11 @@ float glenz_scale[glenz_n]=
 bool intro_flag=false;	// flag
 const int intro_n=36;					// number
 int intro_i=1;					// counter
-float intro_radius;			// radius
 float intro_angle=0;		// angle
 /* tunnel variable			*/
 bool tunnel_flag=false;	// flag
 const int tunnel_n1=64;				// depth number
 const int tunnel_n2=16;				// circle number
-float tunnel_angle=0;		// angle
-float tunnel_x[64];			// position x
-float tunnel_y[64];			// position y
-float tunnel_z[64];			// position z
-float tunnel_depth=0.25f;// depth
-float tunnel_radius=1.5f;// radius
-float tunnel_path=4.0f;	// path radius
-float tunnel_vtx[]={ -0.125f,-0.1875f,0.125f,-0.1875f,0.125f,0.1875f,-0.125f,0.1875f };
-float tunnel_tex[]={ 0.25f,0.78125f,0.3125f,0.78125f,0.3125f,0.875f,0.25f,0.875f };
 const int star_n=2560;		// total star number
 float star_x[star_n];			// position x
 float star_y[star_n];			// position y
@@ -648,10 +622,10 @@ int InitGL(void)
 	{
 		float angle=(rand()%3600)*0.1f;
 		radius=((rand()%1000)*0.01f);
-		radius=tunnel_radius*1.125f+((radius<0.0f) ? -radius : radius);
+		radius=1.5f*1.125f+((radius<0.0f) ? -radius : radius);
 		star_x[i]=radius*cosf(angle);
 		star_y[i]=radius*sinf(angle);
-		star_z[i]=(rand()%(int)(tunnel_depth*tunnel_n1*1000))*0.001f;
+		star_z[i]=(rand()%(int)(0.25f*tunnel_n1*1000))*0.001f;
 		if (angle>180) star_z[i]=-star_z[i];
 	}
 	float y=0;
@@ -760,6 +734,13 @@ int InitGL(void)
 		}
 	}
 	return true;
+}
+
+void SyncDrums()
+{
+	if (mod_row % 8 == 0)
+		synchro();
+	
 }
 
 int DrawGLScene(void) // draw scene
@@ -879,200 +860,44 @@ int DrawGLScene(void) // draw scene
 						circuit_flag=false;
 						intro_flag=false;
 						move_flag=false;
-						liner_flag=true;
-						txt=txt_info1;
 						speed_flag=false;
 						speed_value=1.0f;
 						logo_flag=true;
-						calc_txt();
 						flash();
 						fov_anim();
-						bgd_base_r=0.125f;
-						bgd_base_g=0.15f;
-						bgd_base_b=0.1f;
-						fog_color[0]=bgd_base_r;
-						fog_color[1]=bgd_base_g;
-						fog_color[2]=bgd_base_b;
+						fog_color[0]=0.125f;
+						fog_color[1]=0.15f;
+						fog_color[2]=0.1f;
 						glFogfv(GL_FOG_COLOR, fog_color);
 					}
+					SyncDrums();
 					break;
-				case 7:
+				case 5:
+					SyncDrums();
+					break;
+				case 6:
+					SyncDrums();
 					if (mod_row==54) speed();
 					break;
-				case 8:
+				case 7:
 					if (mod_row==0)
 					{
-						loop_counter++;
 						logo_flag=true;
 						tekk_flag=false;
 						cube_flag=true;
 						circuit_flag=true;
-						glenz_flag=true;
-						intro_radius=3.0f;
-						liner_flag=true;
 						speed_flag=false;
-						txt=txt_info2;
-						calc_txt();
 						flash();
+						fog_color[0]=0;
+						fog_color[1]=0.125f;
+						fog_color[2]=0.25f;
+						glFogfv(GL_FOG_COLOR, fog_color);
+					}
+					break;
+				case 8:
+					if (mod_row==0) {
+						loop_counter++;
 						if (loop_counter>0) fov_anim();
-						bgd_base_r=0;
-						bgd_base_g=0.125f;
-						bgd_base_b=0.25f;
-						fog_color[0]=bgd_base_r;
-						fog_color[1]=bgd_base_g;
-						fog_color[2]=bgd_base_b;
-						glFogfv(GL_FOG_COLOR, fog_color);
-					}
-					break;
-				case 11:
-					if (mod_row==40)
-					{
-						fade();
-						sync2(0.5f);
-					}
-					break;
-				case 12:
-					if (mod_row==0)
-					{
-						logo_flag=true;
-						cube_flag=false;
-						circuit_flag=false;
-						tunnel_flag=true;
-						tunnel_angle=main_angle;
-						glenz_flag=false;
-						liner_flag=true;
-						txt=txt_info3;
-						calc_txt();
-						flash();
-						for (int i=0; i<tunnel_n1; i++)
-						{
-							angle=540.0f*PID;
-							float x=tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f);
-							float y=tunnel_path*sinf(angle*0.25f)-tunnel_path*cosf(angle*0.25f);
-							tunnel_x[i]=x;
-							tunnel_y[i]=y;
-							tunnel_z[i]=-tunnel_depth*i;
-						}
-						bgd_base_r=0.0f;
-						bgd_base_g=0.05f;
-						bgd_base_b=0.1f;
-						fog_color[0]=bgd_base_r;
-						fog_color[1]=bgd_base_g;
-						fog_color[2]=bgd_base_b;
-						glFogfv(GL_FOG_COLOR, fog_color);
-					}
-					break;
-				case 15:
-					switch (mod_row)
-					{
-					case 40: fade(); break;
-					case 48: speed(); break;
-					}
-					break;
-				case 16:
-					if (mod_row==0)
-					{
-						logo_flag=true;
-						tunnel_flag=false;
-						glenz_flag=true;
-						intro_radius=1.0f;
-						liner_flag=true;
-						speed_flag=false;
-						txt=txt_info4;
-						calc_txt();
-						flash();
-						bgd_base_r=0.25f;
-						bgd_base_g=0.25f;
-						bgd_base_b=0.375f;
-						fog_color[0]=bgd_base_r;
-						fog_color[1]=bgd_base_g;
-						fog_color[2]=bgd_base_b;
-						glFogfv(GL_FOG_COLOR, fog_color);
-					}
-					break;
-				case 19:
-					if (mod_row==40) fade();
-					break;
-				case 20:
-					if (mod_row==0)
-					{
-						txt=txt_info5;
-						logo_flag=true;
-						vote_flag=true;
-						glenz_flag=false;
-						liner_flag=true;
-						calc_txt();
-						flash();
-						sync2(0.5f);
-						bgd_base_r=0.25f;
-						bgd_base_g=0.125f;
-						bgd_base_b=0.25f;
-						fog_color[0]=bgd_base_r;
-						fog_color[1]=bgd_base_g;
-						fog_color[2]=bgd_base_b;
-						glFogfv(GL_FOG_COLOR, fog_color);
-					}
-					break;
-				case 23:
-					if (mod_row==40) fade();
-					break;
-				case 24:
-					if (mod_row==0)
-					{
-						logo_flag=true;
-						vote_flag=false;
-						glenz_flag=true;
-						intro_radius=1.0f;
-						flash();
-						fov_anim();
-						bgd_base_r=0.3f;
-						bgd_base_g=0.25f;
-						bgd_base_b=0.2f;
-						fog_color[0]=bgd_base_r;
-						fog_color[1]=bgd_base_g;
-						fog_color[2]=bgd_base_b;
-						glFogfv(GL_FOG_COLOR, fog_color);
-					}
-					break;
-				case 26:
-					switch (mod_row)
-					{
-					case 0: case 6: case 12: case 32: case 38: case 44: synchro(); break;
-					}
-					break;
-				case 27:
-					switch (mod_row)
-					{
-					case  0: case 6: case 12: case 38: case 44: synchro(); break;
-					case 32: synchro(); speed(); break;
-					case 40: fade(); break;
-					}
-					break;
-				case 28:
-					if (mod_row==0)
-					{
-						logo_flag=true;
-						glenz_flag=false;
-						tekk_flag=true;
-						liner_flag=false;
-						calc_txt();
-						flash();
-						bgd_base_r=0.25f;
-						bgd_base_g=0.2f;
-						bgd_base_b=0.0f;
-						fog_color[0]=bgd_base_r;
-						fog_color[1]=bgd_base_g;
-						fog_color[2]=bgd_base_b;
-						glFogfv(GL_FOG_COLOR, fog_color);
-					}
-					break;
-				case 30:
-					if (mod_row==32) tekk_zoom();
-					break;
-				case 31:
-					switch (mod_row)
-					{
-					case 32: case 48: case 56: case 60: case 62: synchro(); break;
 					}
 					break;
 				}
@@ -1088,15 +913,11 @@ int DrawGLScene(void) // draw scene
 					if (mod_ord==0)
 					{
 						logo_flag=true;
-						liner_flag=true;
 						hidden_flag=true;
 						flash();
-						bgd_base_r=0;
-						bgd_base_g=0;
-						bgd_base_b=0;
-						fog_color[0]=bgd_base_r;
-						fog_color[1]=bgd_base_g;
-						fog_color[2]=bgd_base_b;
+						fog_color[0]=0;
+						fog_color[1]=0;
+						fog_color[2]=0;
 						glFogfv(GL_FOG_COLOR, fog_color);
 					}
 					if (last_ord!=mod_ord) {
@@ -1182,7 +1003,7 @@ int DrawGLScene(void) // draw scene
 		if (angle>90.0f*PID) fov_flag=false;
 	}
 	init3d(screen_w, screen_h);
-	glClearColor(bgd_base_r, bgd_base_g, bgd_base_b, 1.0f);
+	glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_FOG);
 	glEnable(GL_DEPTH_TEST);
@@ -1275,46 +1096,20 @@ int DrawGLScene(void) // draw scene
 	// draw intro
 	if (intro_flag)
 	{
-
+		glBlendFunc(GL_SRC_COLOR, GL_ONE);
+		glPushMatrix();
+		glTranslatef(-2.5f, 0, 0);
+		glScalef(1, 3, 3);
+		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
+		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
+		glDrawArrays(GL_QUADS, 0, 24);
+		glPopMatrix();
 	}
 	glDisable(GL_DEPTH_TEST);
 	// draw tunnel
 	if (tunnel_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
-		/*glVertexPointer(2, GL_FLOAT, 0, tunnel_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, tunnel_tex);
-		angle=(main_angle-tunnel_angle)+540.0f*PID;
-		float x=tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f);
-		float y=tunnel_path*sinf(angle*0.25f)-tunnel_path*cosf(angle*0.25f);
-		angle-=590.0f*PID;
-		radius=synchro_value*0.1f*cosf((main_angle-synchro_angle)*16.0f);
-		p_x=-(tunnel_path*sinf(angle*0.125f)-tunnel_path*cosf(angle*0.375f))-(speed_flag ? (1.0f-speed_value)*tunnel_path*5.0f : 0.0f);
-		p_y=-(tunnel_path*sinf(angle*0.25f)-tunnel_path*cosf(angle*0.25f)+radius);
-		a_z=p_x*10.0f;
-		for (int i=0; i<tunnel_n1; i++)
-		{
-			tunnel_z[i]+=(main_angle-main_angle_prv)*1.5f;
-			if (tunnel_z[i]>0.0f)
-			{
-				tunnel_x[i]=x;
-				tunnel_y[i]=y;
-				tunnel_z[i]-=tunnel_n1*tunnel_depth;
-			}
-			angle=360.0f*PID/tunnel_n2;
-			float angle2=720.0f/tunnel_n1*i;
-			for (int j=0; j<tunnel_n2; j++)
-			{
-				float c=(tunnel_z[i]<-1.0f) ? 1.0f : -tunnel_z[i];
-				glPushMatrix();
-				glColor3f((0.5f+0.5f*cosf(angle*j))*c, 0.5f*c, (0.5f+0.5f*sinf(angle*j))*c);
-				glRotatef(a_z, 0, 0, 1.0f);
-				glTranslatef(p_x+tunnel_x[i]+tunnel_radius*cosf(angle*j+angle2*PID), p_y+tunnel_y[i]+tunnel_radius*sinf(angle*j+angle2*PID), tunnel_z[i]);
-				glRotatef(360.0f/tunnel_n2*j+angle2, 0, 0, 1.0f);
-				glDrawArrays(GL_QUADS, 0, 4);
-				glPopMatrix();
-			}
-		}*/
 		// draw star
 		glVertexPointer(2, GL_FLOAT, 0, star_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, star_tex);
@@ -1395,12 +1190,9 @@ int DrawGLScene(void) // draw scene
 				tekk_zoom_value=0;
 				tekk_zoom_flag=false;
 			}
-			bgd_base_r=0.25f+tekk_zoom_value*0.25f;
-			bgd_base_g=0.2f-tekk_zoom_value*0.125f;
-			bgd_base_b=0.0f+tekk_zoom_value*0.125f;
-			fog_color[0]=bgd_base_r;
-			fog_color[1]=bgd_base_g;
-			fog_color[2]=bgd_base_b;
+			fog_color[0]=0.25f+tekk_zoom_value*0.25f;
+			fog_color[1]=0.2f-tekk_zoom_value*0.125f;
+			fog_color[2]=0.0f+tekk_zoom_value*0.125f;
 			glFogfv(GL_FOG_COLOR, fog_color);
 		}
 		p_x=-2.0f;

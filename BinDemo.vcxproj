@@ -136,6 +136,7 @@
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="glrez.h" />
     <ClInclude Include="minifmod.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="timer.h" />
