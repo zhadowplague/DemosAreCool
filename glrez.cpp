@@ -6,7 +6,6 @@
 #include "resource.h"
 #include "timer.h"
 #include "minifmod.h"
-#include "glrez.h"
 
 #define PI 3.14159265358979323846f // pi
 #define PID PI/180.0f			// pi ratio
@@ -69,7 +68,10 @@ float	a_z=0;						// angle z
 float	main_angle;				// main angle
 float	main_angle_prv;		// previous main angle
 /* color/fogvariable				*/
-float fog_color[]={ 0.4f,0.4f,0.2f,1.0f };	// fog color definition
+const float initial_r=0.4f;
+const float initial_g=0.4f;
+const float initial_b=0.2f;
+float fog_color[]={ initial_r,initial_g,initial_b,1.0f };	// fog color definition
 /* liner variable				*/
 bool liner_flag=false;	// flag
 int car;								// ascii code
@@ -228,11 +230,11 @@ float glenz_scale[glenz_n]=
 };
 /* intro variable				*/
 bool intro_flag=false;	// flag
-const int intro_n=36;					// number
+const int intro_n=36+12;					// number
 int intro_i=1;					// counter
 float intro_angle=0;		// angle
 /* tunnel variable			*/
-bool tunnel_flag=false;	// flag
+bool stars_flag=false;	// flag
 const int tunnel_n1=64;				// depth number
 const int tunnel_n2=16;				// circle number
 const int star_n=2560;		// total star number
@@ -242,7 +244,7 @@ float star_z[star_n];			// position z
 float star_vtx[]={ -0.0375f,-0.0375f,0.0375f,-0.0375f,0.0375f,0.0375f,-0.0375f,0.0375f };
 float star_tex[]={ 0.40625f,0.96875f,0.375f,0.96875f,0.375f,1.0f,0.40625f,1.0f };
 /* vote variable				*/
-bool vote_flag=false;		// flag
+bool lake_flag=false;		// flag
 int vote_n1=48;					// number x
 int vote_n2=48;					// number y
 float vote_w=0.5f;			// space between dot
@@ -743,6 +745,43 @@ void SyncDrums()
 	
 }
 
+void IntroSync()
+{
+	switch (mod_row)
+	{
+	case 0:
+	case 2:
+	case 4:
+	case 12:
+	case 14:
+	case 16:
+	case 18:
+	case 24:
+	case 26:
+	case 28:
+	case 30:
+		intro_i--; break;
+	case  3: synchro(); break;
+	case  6: intro_i--; synchro(); break;
+	}
+}
+
+void MakeBillboard()
+{
+	float modelview[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
+	modelview[0]=1.0f;
+	modelview[1]=0.0f;
+	modelview[2]=0.0f;
+	modelview[4]=0.0f;
+	modelview[5]=1.0f;
+	modelview[6]=0.0f;
+	modelview[8]=0.0f;
+	modelview[9]=0.0f;
+	modelview[10]=1.0f;
+	glLoadMatrixf(modelview);
+}
+
 int DrawGLScene(void) // draw scene
 {
 	frame_counter++;
@@ -790,71 +829,35 @@ int DrawGLScene(void) // draw scene
 				if ((mod_ord==21)&&(mod_row==8||mod_row==24||mod_row==56)) synchro();
 				if ((mod_ord>27&&mod_ord<32)&&(mod_row%8==0)) sync2(1.75f);
 				if ((loop_counter>0)&&(mod_row%16==0)) beat();
-				if (mod_ord>3&&mod_row%4==0) glenz_frame=(glenz_frame==0 ? 1 : 0);
+				if ((mod_ord>3&&mod_ord<7)&&mod_row%4==0) glenz_frame=(glenz_frame==0 ? 1 : 0);
 				switch (mod_ord)
 				{
 				case 0:
-					switch (mod_row)
-					{
-					case 0:
+					if (mod_row==0) {
 						intro_flag=true;
-						tunnel_flag=true;
+						stars_flag=true;
 						glenz_flag=true;
 						cube_flag=false;
 						circuit_flag=false;
 						logo_flag=true;
 						glenz_frame=2;
-						flash();
 						intro_i=intro_n;
-						break;
-					case  3: synchro(); break;
-					case  6: intro_i--; synchro(); break;
-					case 2:
-					case 4:
-					case 12:
-					case 14:
-					case 16:
-					case 18:
-					case 24:
-					case 26:
-					case 28:
-					case 30:
-						intro_i--; break;
 					}
+					IntroSync();
 					break;
 				case 1:
 				case 2:
-					switch (mod_row)
-					{
-					case 0:
-					case 2:
-					case 4:
-					case 12:
-					case 14:
-					case 16:
-					case 18:
-					case 24:
-					case 26:
-					case 28:
-					case 30:
-						intro_i--; break;
-					case  3: synchro(); break;
-					case  6: intro_i--; synchro(); break;
-					}
+					IntroSync();
 					break;
 				case 3:
-					switch (mod_row)
-					{
-					case  0:  synchro(); break;
-					case  6: synchro(); break;
-					case 12:  synchro(); break;
-					case 18: speed(); break;
-					}
+					IntroSync();
+					if (mod_row==18) speed();
 					break;
 				case 4:
 					if (mod_row==0)
 					{
-						tunnel_flag=false;
+						stars_flag=false;
+						lake_flag=true;
 						cube_flag=true;
 						cube_angle=main_angle;
 						circuit_flag=false;
@@ -865,10 +868,6 @@ int DrawGLScene(void) // draw scene
 						logo_flag=true;
 						flash();
 						fov_anim();
-						fog_color[0]=0.125f;
-						fog_color[1]=0.15f;
-						fog_color[2]=0.1f;
-						glFogfv(GL_FOG_COLOR, fog_color);
 					}
 					SyncDrums();
 					break;
@@ -887,12 +886,14 @@ int DrawGLScene(void) // draw scene
 						cube_flag=true;
 						circuit_flag=true;
 						speed_flag=false;
+						stars_flag=true;
+						intro_i=0;
+						intro_flag=true;
+						glenz_frame=2;
 						flash();
-						fog_color[0]=0;
-						fog_color[1]=0.125f;
-						fog_color[2]=0.25f;
-						glFogfv(GL_FOG_COLOR, fog_color);
 					}
+					else
+						intro_i++;
 					break;
 				case 8:
 					if (mod_row==0) {
@@ -1088,9 +1089,9 @@ int DrawGLScene(void) // draw scene
 		glEnable(GL_BLEND);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
-	if (intro_flag||glenz_flag||tunnel_flag||vote_flag||tekk_flag||hidden_flag)
+	if (intro_flag||glenz_flag||stars_flag||lake_flag||tekk_flag||hidden_flag)
 	{
-		fov=fov_base+((!vote_flag) ? 30.0f : 10.0f);
+		fov=fov_base+((!lake_flag) ? 30.0f : 10.0f);
 		init3d(screen_w, screen_h);
 	}
 	// draw intro
@@ -1104,33 +1105,28 @@ int DrawGLScene(void) // draw scene
 		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 		glDrawArrays(GL_QUADS, 0, 24);
 		glPopMatrix();
+
+		float introPercentage=max(0, 1-((float)intro_i/(float)intro_n));
+		fog_color[0]=initial_r*introPercentage;
+		fog_color[1]=initial_g*introPercentage;
+		fog_color[2]=initial_b*introPercentage;
+		glFogfv(GL_FOG_COLOR, fog_color);
 	}
 	glDisable(GL_DEPTH_TEST);
 	// draw tunnel
-	if (tunnel_flag)
+	if (stars_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
 		// draw star
 		glVertexPointer(2, GL_FLOAT, 0, star_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, star_tex);
 		glColor3f(1.0f, 1.0f, 1.0f);
-		int stars_to_render=star_n*((float)intro_i/(float)intro_n);
+		int stars_to_render=min(star_n, star_n*((float)intro_i/(float)intro_n));
 		for (int i=0; i<stars_to_render; i++)
 		{
 			glPushMatrix();
 			glTranslatef(star_x[i], star_y[i], star_z[i]);
-			float modelview[16];
-			glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
-			modelview[0]=1.0f;
-			modelview[1]=0.0f;
-			modelview[2]=0.0f;
-			modelview[4]=0.0f;
-			modelview[5]=1.0f;
-			modelview[6]=0.0f;
-			modelview[8]=0.0f;
-			modelview[9]=0.0f;
-			modelview[10]=1.0f;
-			glLoadMatrixf(modelview);
+			MakeBillboard();
 			glRotatef(a_z, 0, 0, 1.0f);
 			glDrawArrays(GL_QUADS, 0, 4);
 			glPopMatrix();
@@ -1139,7 +1135,7 @@ int DrawGLScene(void) // draw scene
 	glEnable(GL_BLEND);
 	// draw vote
 	glEnable(GL_TEXTURE_2D);
-	if (vote_flag)
+	if (lake_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
 		float w=0.325f;
@@ -1166,12 +1162,8 @@ int DrawGLScene(void) // draw scene
 				if (y<-1.0f) y=-y-1.35f;
 				if (y<-0.625f) y=-0.5f;
 				glPushMatrix();
-				glTranslatef(p_y, 0, p_z);
-				glRotatef(a_x, 1.0f, 0, 0);
-				glRotatef(a_y, 0, 1.0f, 0);
-				glTranslatef(p_x+x, y, z+j*vote_w);
-				glRotatef(-a_y, 0, 1.0f, 0);
-				glRotatef(-a_x, 1.0f, 0, 0);
+				glTranslatef(y-4, p_x+x+20, z+j*vote_w);
+				MakeBillboard();
 				glDrawArrays(GL_QUADS, 0, 4);
 				glPopMatrix();
 			}
@@ -1836,8 +1828,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				circuit_flag=false;
 				move_flag=false;
 				speed_flag=false;
-				tunnel_flag=true;
-				vote_flag=false;
+				stars_flag=true;
+				lake_flag=false;
 				tekk_flag=false;
 				glenz_flag=false;
 				hidden=true;
