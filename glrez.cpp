@@ -913,8 +913,6 @@ int DrawGLScene(void) // draw scene
 					mod_ord=FMUSIC_GetOrder(mod);
 					if (mod_ord==0)
 					{
-						logo_flag=true;
-						hidden_flag=true;
 						flash();
 						fog_color[0]=0;
 						fog_color[1]=0;
@@ -927,10 +925,14 @@ int DrawGLScene(void) // draw scene
 						case 0: txt=txt_hidden1; calc_txt(); break;
 						case 2: txt=txt_hidden2; calc_txt(); break;
 						case 3: txt=txt_hidden3; calc_txt(); break;
-						case 5: txt=txt_hidden4; calc_txt(); break;
 						}
 					}
 				}
+				if (mod_row==96&&mod_ord==5) {
+					txt=txt_hidden4; calc_txt();
+				}
+				if (mod_row==126&&mod_ord==5)
+					done=true;
 				if (mod_row%8==4) synchro();
 			}
 		}
@@ -1768,7 +1770,6 @@ LRESULT CALLBACK WndProc(HWND	hWnd, UINT	uMsg, WPARAM	wParam, LPARAM	lParam)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	MSG msg;																		// windows message structure
-	done=false;																	// exit loop
 	// create openGL window
 	if (!CreateGLWindow(name)) return 0;					// quit if window not created
 	// load and play music
@@ -1832,6 +1833,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				lake_flag=false;
 				tekk_flag=false;
 				glenz_flag=false;
+				logo_flag=true;
+				liner_flag=true;
+				hidden_flag=true;
+				intro_i=intro_n;
 				hidden=true;
 				loop_counter=0;
 				mod_play=false;
