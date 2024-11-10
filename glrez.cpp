@@ -392,7 +392,7 @@ int memtell(unsigned int handle)
 	return memfile->pos;
 }
 
-int load_tex(WORD file, GLint clamp, GLint mipmap)
+void load_tex(WORD file, GLint clamp, GLint mipmap)
 {
 	HBITMAP hBMP;	// bitmap handle
 	BITMAP BMP;		// bitmap structure
@@ -410,7 +410,25 @@ int load_tex(WORD file, GLint clamp, GLint mipmap)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
 		DeleteObject(hBMP);
 	}
-	return 0;
+}
+
+GLuint create_tex(int width, int height, float* data) {
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);//Call this when drawing later
+
+	// Define texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Upload the texture data from the float array
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16, width, height, 0, GL_RGB, GL_FLOAT, data);
+
+	// Unbind texture
+	glBindTexture(GL_TEXTURE_2D, 0);
+	return textureID;
 }
 
 void init3d(GLsizei width, GLsizei height)
@@ -614,6 +632,7 @@ int InitGL(void)
 	glFogf(GL_FOG_END, 24.0f);					// fog end depth
 	// load texture
 	load_tex(IDB_BITMAP1, GL_REPEAT, GL_NEAREST);
+	//create_tex();
 	// initialize some variable
 	timer=new Timer();
 	calc_txt();
