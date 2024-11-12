@@ -139,11 +139,8 @@ float cube_face_tex[48]={
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //leftside
 };
 float cube_white_col[72];         // cube white vertex colors
-float cube_blue_col[72];         // cube brown vertex colors
 float circuit_tex[16]={ 0.75f,0.75f,0.75f,1.0f,0.625f,1.0f,0.625f,0.75f,0.625f,0.75f,0.625f,1.0f,0.5f,1.0f,0.5f,0.75f };
 float circuit_vtx[24]={ cube_w,0,cube_w,cube_w,0,-cube_w,0,0,-cube_w,0,0,cube_w,0,0,cube_w,0,0,-cube_w,-cube_w,0,-cube_w,-cube_w,0,cube_w };
-float chipset_vtx[60*9];// chip vertex array
-float chipset_tex[40*9];// chip texture array
 /* circuit variable			*/
 bool circuit_flag=false;// flag
 /* logo variable				*/
@@ -263,14 +260,9 @@ float tekk_zoom_angle=0;// zoom angle
 float tekk_zoom_value=0;// zoom value
 float tekk_vtx[147456];	// vertex array
 float tekk_col[147456];	// color array
-int youtube_vtx[16];		// vertex array
 /* hidden variable			*/
 bool hidden=false;			// flag
 bool hidden_flag=false;	// flag
-float hidden_radius=27.0f;// radius
-float hidden_vtx[]={ -0.25f,-0.25f,0.25f,-0.25f,0.25f,0.25f,-0.25f,0.25f };
-float hidden_tex[]={ 0.437f,0.812f,0.3755f,0.812f,0.3755f,0.8745f,0.437f,0.8745f };
-float gameboy_tex[]={ 0.25f,0.78125f,0.3125f,0.78125f,0.3125f,0.875f,0.25f,0.875f };
 /* flash variable				*/
 bool flash_flag=false;	// flag
 float flash_angle=0;		// angle
@@ -564,34 +556,6 @@ void glenz() {
 	}
 }
 
-void pins(int n1, int n2, float x, float y, float z, float a, float b, bool type)
-{
-	float k=0.015625f;
-	a=type ? a : -a;
-	b=type ? -b : b;
-	float vertex[]={ x+a,0,z+b,x,0,z+b,x,0,z-b,x+a,0,z-b,x+a,-y,z+b,x+a,0,z+b,x+a,0,z-b,x+a,-y,z-b,x+a,-y,z-b,x+a,0,z-b,x+a,0,z+b,x+a,-y,z+b,x+a,-y*3,z+b*0.5f,x+a,-y,z+b*0.5f,x+a,-y,z-b*0.5f,x+a,-y*3,z-b*0.5f,x+a,-y*3,z-b*0.5f,x+a,-y,z-b*0.5f,x+a,-y,z+b*0.5f,x+a,-y*3,z+b*0.5f };
-	float texture[]={ 0.3125f,0.875f+k+k,0.3125f,0.875f+k,0.25f,0.875f+k,0.25f,0.875f+k+k,0.375f,0.875f+k+k,0.375f,0.875f+k+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.375f,0.875f+k+k,0.375f,0.875f+k+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k,0.3125f,0.875f+k };
-	for (int i=0; i<60; i++) chipset_vtx[n1+i]=vertex[i];
-	for (int i=0; i<40; i++) chipset_tex[n2+i]=texture[i];
-}
-
-void chipset(float x, float y, float z, float a, float b)
-{
-	float k=0.015625f;
-	float vertex[]={ x,y,z,-x,y,z,-x,-y,z,x,-y,z,-x,y,-z,x,y,-z,x,-y,-z,-x,-y,-z,-x,y,z,-x,y,-z,-x,-y,-z,-x,-y,z,x,y,-z,x,y,z,x,-y,z,x,-y,-z,x,y,z,x,y,-z,-x,y,-z,-x,y,z };
-	float texture[]={ 0.375f,0.875f+k*3,0.25f,0.875f+k*3,0.25f,0.875f+k*2,0.375f,0.875f+k*2,0.25f,0.875f+k*3,0.375f,0.875f+k*3,0.375f,0.875f+k*2,0.25f,0.875f+k*2,0.375f,0.875f+k*4,0.25f,0.875f+k*4,0.25f,0.875f+k*3,0.375f,0.875f+k*3,0.25f,0.875f+k*4,0.375f,0.875f+k*4,0.375f,0.875f+k*3,0.25f,0.875f+k*3,0.375f,1.0f,0.25f,1.0f,0.25f,0.9375f,0.375f,0.9375f };
-	for (int i=0; i<60; i++) chipset_vtx[i]=vertex[i];
-	for (int i=0; i<40; i++) chipset_tex[i]=texture[i];
-	pins(60, 40, -x, y, -z*0.75f, a, b, false);
-	pins(60*2, 40*2, -x, y, -z*0.25f, a, b, false);
-	pins(60*3, 40*3, -x, y, z*0.25f, a, b, false);
-	pins(60*4, 40*4, -x, y, z*0.75f, a, b, false);
-	pins(60*5, 40*5, x, y, -z*0.75f, a, b, true);
-	pins(60*6, 40*6, x, y, -z*0.25f, a, b, true);
-	pins(60*7, 40*7, x, y, z*0.25f, a, b, true);
-	pins(60*8, 40*8, x, y, z*0.75f, a, b, true);
-}
-
 void rectangle(int x, int y, int w, int h)
 {
 	glLoadIdentity();
@@ -608,11 +572,6 @@ void cube()
 	for (int i=0; i<72; i++)
 	{
 		cube_white_col[i]=1;
-	}
-	for (int i=0; i<=24; i+=3) {
-		cube_blue_col[i]=34.0/255.0;
-		cube_blue_col[i+1]=67.0/255.0;
-		cube_blue_col[i+2]=182.0/255.0;
 	}
 }
 
@@ -648,7 +607,6 @@ int InitGL(void)
 	calc_txt();
 	glenz();
 	cube();
-	chipset(cube_w*0.25f, cube_w*0.0625f, cube_w*0.5f, cube_w*0.1f, cube_w*0.0625f);
 	for (int i=0; i<star_n; i++)
 	{
 		float angle=(rand()%3600)*0.1f;
@@ -1081,7 +1039,6 @@ int DrawGLScene(void) // draw scene
 			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 			glDrawArrays(GL_QUADS, 0, 20);
 		}
-		// draw circuit
 		if (circuit_flag)
 		{
 			glVertexPointer(3, GL_FLOAT, 0, circuit_vtx);
@@ -1103,29 +1060,12 @@ int DrawGLScene(void) // draw scene
 			}
 			glDisable(GL_BLEND);
 		}
-		glDisableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, chipset_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, chipset_tex);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		for (int i=0; i<k; i++)
-		{
-			glLoadIdentity();
-			glTranslatef(p_x, p_y, p_z);
-			glRotatef(a_x, 1.0f, 0, 0);
-			glRotatef(a_y, 0, 1.0f, 0);
-			glTranslatef(cube_x[i], cube_y[i]+cube_size*0.75f+0.01f+h, cube_z[i]);
-			glDrawArrays(GL_QUADS, 0, 180);
-		}
-		glEnableClientState(GL_COLOR_ARRAY);
-		glEnable(GL_BLEND);
-		glDisableClientState(GL_COLOR_ARRAY);
 	}
 	if (intro_flag||glenz_flag||stars_flag||lake_flag||tekk_flag||hidden_flag)
 	{
 		fov=fov_base+((!lake_flag) ? 30.0f : 10.0f);
 		init3d(screen_w, screen_h);
 	}
-	// draw intro
 	if (intro_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
@@ -1144,11 +1084,9 @@ int DrawGLScene(void) // draw scene
 		glFogfv(GL_FOG_COLOR, fog_color);
 	}
 	glDisable(GL_DEPTH_TEST);
-	// draw tunnel
 	if (stars_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
-		// draw star
 		glVertexPointer(2, GL_FLOAT, 0, star_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, star_tex);
 		glColor3f(1.0f, 1.0f, 1.0f);
@@ -1164,7 +1102,6 @@ int DrawGLScene(void) // draw scene
 		}
 	}
 	glEnable(GL_BLEND);
-	// draw vote
 	glEnable(GL_TEXTURE_2D);
 	if (lake_flag)
 	{
@@ -1293,7 +1230,7 @@ int DrawGLScene(void) // draw scene
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-			glColorPointer(3, GL_FLOAT, 0, cube_blue_col);
+			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glDisableClientState(GL_COLOR_ARRAY);
 			glPopMatrix();
@@ -1580,22 +1517,6 @@ int CreateGLWindow(char* title)
 	liner_vtx[5]=(int)(-liner_h*1.5f);
 	liner_vtx[6]=-liner_w;
 	liner_vtx[7]=-liner_h;
-	youtube_vtx[0]=-liner_w;
-	youtube_vtx[1]=(int)(liner_h*1.5f);
-	youtube_vtx[2]=0;
-	youtube_vtx[3]=(int)(liner_h*1.25f);
-	youtube_vtx[4]=0;
-	youtube_vtx[5]=-liner_h;
-	youtube_vtx[6]=-liner_w;
-	youtube_vtx[7]=-liner_h;
-	youtube_vtx[8]=0;
-	youtube_vtx[9]=(int)(liner_h*1.25f);
-	youtube_vtx[10]=liner_w;
-	youtube_vtx[11]=liner_h;
-	youtube_vtx[12]=liner_w;
-	youtube_vtx[13]=-liner_h;
-	youtube_vtx[14]=0;
-	youtube_vtx[15]=-liner_h;
 	dos_w=2*ratio_2d;
 	dos_h=4*ratio_2d;
 	dos_vtx[0]=dos_w;
