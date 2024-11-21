@@ -123,13 +123,7 @@ float cube_vtx[72]={
 	// Bottom face
 	-cube_size/2, -cube_size/2,  cube_size/2,   -cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2,  cube_size/2
 };
-float cube_tex[40]={
-	0.0f, 0.745f, 0.25f, 0.745f, 0.25f, 0.75f, 0.0f, 0.75f,
-	0.0f, 0.745f, 0.0f, 0.75f, 0.25f, 0.75f, 0.25f, 0.745f,
-	0.25f, 0.735f, 0.0f, 0.735f, 0.0f, 0.74f, 0.25f, 0.74f,
-	0.0f, 0.735f, 0.25f, 0.735f, 0.25f, 0.74f, 0.0f, 0.74f,
-	0.25f, 0.75f, 0.25f, 1.0f, 0.0f, 1.0f, 0.0f, 0.75f
-};
+float sun_vtx[72];
 float cube_face_tex[48]={
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //front
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
@@ -572,6 +566,7 @@ void cube()
 	for (int i=0; i<72; i++)
 	{
 		cube_white_col[i]=1;
+		sun_vtx[i]=cube_vtx[i];
 	}
 }
 
@@ -1027,18 +1022,33 @@ int DrawGLScene(void) // draw scene
 				k++;
 			}
 		}
-		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, cube_tex);
-		for (int i=0; i<k; i++)
+		//glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
+		//glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
+		//for (int i=0; i<k; i++)
+		//{
+		//	glLoadIdentity();
+		//	glTranslatef(p_x, p_y, p_z);
+		//	glRotatef(a_x, 1.0f, 0, 0);
+		//	glRotatef(a_y, 0, 1.0f, 0);
+		//	glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
+		//	glColorPointer(3, GL_FLOAT, 0, cube_white_col);
+		//	glDrawArrays(GL_QUADS, 0, 20);
+		//}
+		//draw sun
+		glVertexPointer(3, GL_FLOAT, 0, sun_vtx);
+		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
+		glLoadIdentity();
+		glTranslatef(p_x, p_y, p_z);
+		glRotatef(a_x, 1.0f, 0, 0);
+		glRotatef(a_y, 0, 1.0f, 0);
+		glColorPointer(3, GL_FLOAT, 0, cube_white_col);
+		glDrawArrays(GL_QUADS, 0, 20);
+		for (int i=0; i<72; i+=2)
 		{
-			glLoadIdentity();
-			glTranslatef(p_x, p_y, p_z);
-			glRotatef(a_x, 1.0f, 0, 0);
-			glRotatef(a_y, 0, 1.0f, 0);
-			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
-			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
-			glDrawArrays(GL_QUADS, 0, 20);
+			sun_vtx[i]=cube_vtx[i]*cosf(angle);
+			sun_vtx[i+1]=cube_vtx[i+1]*sinf(angle);
 		}
+
 		if (circuit_flag)
 		{
 			glVertexPointer(3, GL_FLOAT, 0, circuit_vtx);
@@ -1209,7 +1219,8 @@ int DrawGLScene(void) // draw scene
 	if (glenz_flag)
 	{
 		int frame=27*glenz_frame;
-		glBlendFunc(GL_SRC_COLOR, GL_ONE);
+		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
@@ -1221,21 +1232,21 @@ int DrawGLScene(void) // draw scene
 		glDisableClientState(GL_COLOR_ARRAY);
 		glPopMatrix();
 
-		glDisable(GL_TEXTURE_2D);
 		int endFrame=27*(glenz_frame+1);
 		for (int i=frame+3; i<endFrame; i+=3) {
-			glBlendFunc(GL_SRC_COLOR, GL_DST_COLOR);
 			glPushMatrix();
 			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]);
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
+			glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glDisableClientState(GL_COLOR_ARRAY);
 			glPopMatrix();
 		}
-		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
 	}
 	init2d(screen_w, screen_h);
 	// draw liner
