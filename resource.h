@@ -2,10 +2,9 @@
 // Microsoft Visual C++ generated include file.
 // Used by data.rc
 //
-#define IDB_BITMAP1                     101
 #define IDI_ICON1                       102
 #define IDR_XM2                         107
-#define IDR_XM1                     108
+#define IDR_XM1                         108
 
 // Next default values for new objects
 // 

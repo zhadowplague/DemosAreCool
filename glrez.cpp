@@ -14,14 +14,8 @@
 Timer* timer;
 float timer_global=0;
 float timer_global_previous=0;
-float timer_fps=0;
-float timer_fps_total=0;
-float timer_fps_average=0;
-float timer_fps_min=32768;
-float timer_fps_max=0;
 float timer_music=0;
 float timer_max=0;
-int frame_counter=0;
 int loop_counter=-1;
 bool done=false;
 
@@ -91,12 +85,14 @@ float liner_color;			// color increment
 int liner_vtx[8];				// vertex array
 /* text variable				*/
 char* name="Bin - Demos are cool";
-char* txt_dos="\r\r\rThe Bin Demo operating system\rVersion 1.0 No 554\r\rDemos are cool\r\r\r\rF1: display debug infos\r\rF2: wireframe rendering\r\rF3: start now\r\r\r\rSPACE: fullscreen/windowed\r\r\rA>_";
+char* txt_dos1="F2: wireframe rendering";
+char* txt_dos2="F12: credits";
+char* txt_dos3="SPACE: fullscreen/windowed";
 char* txt_hidden1="\r\r\r   - Credits 1 -   \r\r code:    rez \r code:    bin \r\r      - * -      \r                 \r                 ";
 char* txt_hidden2="\r\r\r   - Credits 2 -   \r\r music: chris \r music:   bin \r\r      - * -      \r                 \r                 ";
 char* txt_hidden3="\r\r\rThanks goes to:    \r\r keops: timer code \r\r4mat,coda,bubsy \r                   \r                   ";
 char* txt_hidden4="\r\r\r  bye \r                 \r                 ";
-char* txt=txt_dos;
+char* txt=txt_hidden1;
 /* cube variable				*/
 bool cube_flag=false;		// flag
 int cube_n=16;					// number
@@ -125,7 +121,7 @@ float cube_vtx[72]={
 };
 float sun_vtx[72];
 float cube_face_tex[48]={
-	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //front
+	1, 0.4, 1, 1, 0, 1,0, 0.4, //front
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
@@ -137,19 +133,11 @@ float circuit_tex[16]={ 0.75f,0.75f,0.75f,1.0f,0.625f,1.0f,0.625f,0.75f,0.625f,0
 float circuit_vtx[24]={ cube_w,0,cube_w,cube_w,0,-cube_w,0,0,-cube_w,0,0,cube_w,0,0,cube_w,0,0,-cube_w,-cube_w,0,-cube_w,-cube_w,0,cube_w };
 /* circuit variable			*/
 bool circuit_flag=false;// flag
-/* logo variable				*/
-bool logo_flag=false;		// flag
-int logo_w;							// width
-int logo_h;							// height
-int logo_margin;				// margin
-int logo_vtx[8];				// vertex array
-float logo_tex[]={ 0.5f,1.0f,0.4375f,1.0f,0.4375f,0.9375f,0.5f,0.9375f };
 /* loop variable				*/
 int loop_w;							// width
 int loop_h;							// height
 int loop_margin;				// margin
 int loop_vtx[8];				// vertex array
-float loop_tex[]={ 0.46484375f,0.76953125f,0.25f,0.76953125f,0.25f,0.75f,0.46484375f,0.75f };
 /* glenz variable */
 bool glenz_flag=false;
 int glenz_frame=0;
@@ -264,20 +252,8 @@ float flash_angle=0;		// angle
 bool dos_flag=true;// flag
 bool skip_dos=false;
 float dos_time=6.0f;
-int dos_w;							// width
-int dos_h;							// height
-int dos_vtx[8];					// vertex array
-int shell_vtx[8];				// vertex array
-float shell_tex[]={ 1.0f,0.9453125f,1.0f,1.0f,0.75f,1.0f,0.75f,0.9453125f };
-/* debug variable				*/
-bool debug_flag=false;// flag
-bool debug_test=true;		// test
-int debug_w;						// width
-int debug_h;						// height
-int debug_vtx[8];				// vertex array
 /* flash variable		*/
 int scanline_vtx[8];		// vertex array
-float scanline_tex[8];	// texture array
 /* synchro variable			*/
 bool synchro_flag=false;// flag
 float synchro_angle=0;	// angle
@@ -382,41 +358,33 @@ int memtell(unsigned int handle)
 
 void load_tex(WORD file, GLint clamp, GLint mipmap)
 {
-	HBITMAP hBMP;	// bitmap handle
-	BITMAP BMP;		// bitmap structure
-	hBMP=(HBITMAP)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(file), IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
-	if (hBMP)
-	{
-		GetObject(hBMP, sizeof(BMP), &BMP);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-		glBindTexture(GL_TEXTURE_2D, file);
-		glTexImage2D(GL_TEXTURE_2D, 0, 3, BMP.bmWidth, BMP.bmHeight, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, BMP.bmBits);
-		gluBuild2DMipmaps(GL_TEXTURE_2D, 3, BMP.bmWidth, BMP.bmHeight, GL_BGR_EXT, GL_UNSIGNED_BYTE, BMP.bmBits);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mipmap);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
-		DeleteObject(hBMP);
-	}
-}
-
-GLuint create_tex(int width, int height, float* data) {
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D, textureID);//Call this when drawing later
-
-	// Define texture parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	// Upload the texture data from the float array
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16, width, height, 0, GL_RGB, GL_FLOAT, data);
-
-	// Unbind texture
-	glBindTexture(GL_TEXTURE_2D, 0);
-	return textureID;
+	auto a=LoadImage(hInstance, MAKEINTRESOURCE(file), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+	HICON hIcon=static_cast<HICON>(a);	
+	ICONINFO iconInfo;
+	GetIconInfo(hIcon, &iconInfo);
+	HBITMAP hBMP=iconInfo.hbmColor;
+	BITMAP bmp;
+	GetObject(hBMP, sizeof(BITMAP), &bmp);
+	BITMAPINFO bmpInfo={ 0 };
+	bmpInfo.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
+	bmpInfo.bmiHeader.biWidth=bmp.bmWidth;
+	bmpInfo.bmiHeader.biHeight=bmp.bmHeight; // Negative to avoid inversion
+	bmpInfo.bmiHeader.biPlanes=1;
+	bmpInfo.bmiHeader.biBitCount=32; // Assume RGBA format
+	bmpInfo.bmiHeader.biCompression=BI_RGB;
+	BYTE* pixels=new BYTE[bmp.bmWidth*bmp.bmHeight*4];
+	GetDIBits(hDC, hBMP, 0, bmp.bmHeight, pixels, &bmpInfo, DIB_RGB_COLORS);
+	GetObject(hBMP, sizeof(bmp), &bmp);
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bmp.bmWidth, bmp.bmHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
+	delete[] pixels;
+	DeleteObject(hBMP);
+	DeleteObject(iconInfo.hbmMask);
+	DestroyIcon(hIcon);
 }
 
 void init3d(GLsizei width, GLsizei height)
@@ -441,31 +409,6 @@ void init2d(GLsizei width, GLsizei height)
 	gluOrtho2D(0, width, height, 0);	// init orthographic mode
 	glMatrixMode(GL_MODELVIEW);		// select modelview matrix
 	glLoadIdentity();							// reset modelview matrix
-}
-
-void calc_txt()
-{
-	liner_length=strlen(txt);
-	liner_count=0;
-	liner_angle=main_angle;
-	liner_n=0;
-	liner_max=0;
-	liner_i=0;
-	for (int i=0; i<liner_length; i++)
-	{
-		if ((byte)txt[i]!=13)
-		{
-			liner_i++;
-		}
-		else
-		{
-			if (liner_i>liner_max) liner_max=liner_i;
-			liner_n++;
-			liner_i=0;
-		}
-	}
-	if (liner_i>liner_max) liner_max=liner_i;
-	fade_value=1.0f;
 }
 
 void flash()
@@ -587,7 +530,7 @@ int InitGL(void)
 	glFogf(GL_FOG_START, 2.0f);				// fog start depth
 	glFogf(GL_FOG_END, 24.0f);					// fog end depth
 	// load texture
-	load_tex(IDB_BITMAP1, GL_REPEAT, GL_NEAREST);
+	load_tex(IDI_ICON1, GL_REPEAT, GL_NEAREST);
 	// Create a font for OpenGL
 	hFont=CreateFont(
 		-16, 0, 0, 0, FW_HEAVY, FALSE, FALSE, FALSE,
@@ -599,7 +542,6 @@ int InitGL(void)
 	wglUseFontBitmaps(hDC, 32, 96, fontBase);
 	// initialize some variable
 	timer=new Timer();
-	calc_txt();
 	glenz();
 	cube();
 	for (int i=0; i<star_n; i++)
@@ -766,7 +708,6 @@ void MakeBillboard()
 
 int DrawGLScene(void) // draw scene
 {
-	frame_counter++;
 	// synchro
 	timer->update();
 	timer_global_previous=timer_global;
@@ -777,11 +718,6 @@ int DrawGLScene(void) // draw scene
 		main_angle_prv=main_angle;
 		main_angle=timer_global*100.0f*PID;
 	}
-	timer_fps=1.0f/(timer_global-timer_global_previous);
-	timer_fps_total+=timer_fps;
-	timer_fps_average=timer_fps_total/frame_counter;
-	if (timer_fps<timer_fps_min) timer_fps_min=timer_fps;
-	if (timer_fps>timer_fps_max) timer_fps_max=timer_fps;
 	// start music
 	if (!mod_play&&(timer_global>dos_time||skip_dos))
 	{
@@ -821,7 +757,6 @@ int DrawGLScene(void) // draw scene
 						glenz_flag=true;
 						cube_flag=false;
 						circuit_flag=false;
-						logo_flag=true;
 						glenz_frame=2;
 						intro_i=intro_n;
 					}
@@ -847,7 +782,6 @@ int DrawGLScene(void) // draw scene
 						move_flag=false;
 						speed_flag=false;
 						speed_value=1.0f;
-						logo_flag=true;
 						flash();
 						fov_anim();
 					}
@@ -863,7 +797,6 @@ int DrawGLScene(void) // draw scene
 				case 7:
 					if (mod_row==0)
 					{
-						logo_flag=true;
 						tekk_flag=false;
 						cube_flag=true;
 						circuit_flag=true;
@@ -904,14 +837,14 @@ int DrawGLScene(void) // draw scene
 					if (last_ord!=mod_ord) {
 						switch (mod_ord)
 						{
-						case 0: txt=txt_hidden1; calc_txt(); break;
-						case 2: txt=txt_hidden2; calc_txt(); break;
-						case 3: txt=txt_hidden3; calc_txt(); break;
+						case 0: txt=txt_hidden1; break;
+						case 2: txt=txt_hidden2; break;
+						case 3: txt=txt_hidden3; break;
 						}
 					}
 				}
 				if (mod_row==96&&mod_ord==5) {
-					txt=txt_hidden4; calc_txt();
+					txt=txt_hidden4;
 				}
 				if (mod_row==126&&mod_ord==5)
 					done=true;
@@ -992,7 +925,6 @@ int DrawGLScene(void) // draw scene
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_FOG);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
 	// draw cube
 	if (cube_flag)
 	{
@@ -1023,7 +955,6 @@ int DrawGLScene(void) // draw scene
 			}
 		}
 		//glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-		//glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 		//for (int i=0; i<k; i++)
 		//{
 		//	glLoadIdentity();
@@ -1036,7 +967,6 @@ int DrawGLScene(void) // draw scene
 		//}
 		//draw sun
 		glVertexPointer(3, GL_FLOAT, 0, sun_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 		glLoadIdentity();
 		glTranslatef(p_x, p_y, p_z);
 		glRotatef(a_x, 1.0f, 0, 0);
@@ -1052,7 +982,6 @@ int DrawGLScene(void) // draw scene
 		if (circuit_flag)
 		{
 			glVertexPointer(3, GL_FLOAT, 0, circuit_vtx);
-			glTexCoordPointer(2, GL_FLOAT, 0, circuit_tex);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_ONE, GL_DST_ALPHA);
 			for (int i=0; i<k; i++)
@@ -1083,7 +1012,6 @@ int DrawGLScene(void) // draw scene
 		glTranslatef(-2.5f, 0, 0);
 		glScalef(1, 3, 3);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 		glDrawArrays(GL_QUADS, 0, 24);
 		glPopMatrix();
 
@@ -1098,7 +1026,6 @@ int DrawGLScene(void) // draw scene
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
 		glVertexPointer(2, GL_FLOAT, 0, star_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, star_tex);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		int stars_to_render=min(star_n, star_n*((float)intro_i/(float)intro_n));
 		for (int i=0; i<stars_to_render; i++)
@@ -1112,7 +1039,6 @@ int DrawGLScene(void) // draw scene
 		}
 	}
 	glEnable(GL_BLEND);
-	glEnable(GL_TEXTURE_2D);
 	if (lake_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
@@ -1127,7 +1053,6 @@ int DrawGLScene(void) // draw scene
 		float z=-vote_n2*vote_w*0.5f;
 		radius=1.0f;
 		glVertexPointer(2, GL_FLOAT, 0, vote_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, star_tex);
 		for (int i=0; i<vote_n1; i++)
 		{
 			float x=p_x+i*vote_w;
@@ -1150,7 +1075,6 @@ int DrawGLScene(void) // draw scene
 	// draw tekk
 	if (tekk_flag)
 	{
-		glDisable(GL_TEXTURE_2D);
 		if (tekk_zoom_flag)
 		{
 			angle=(main_angle-tekk_zoom_angle)*0.15f;
@@ -1212,12 +1136,12 @@ int DrawGLScene(void) // draw scene
 		glTranslatef(p_x, p_y, p_z);
 		glDrawArrays(GL_QUADS, 0, tekk_bar*tekk_n*16);
 		glDisableClientState(GL_COLOR_ARRAY);
-		glEnable(GL_TEXTURE_2D);
 	}
 	glDisable(GL_FOG);
 	// draw glenz
 	if (glenz_flag)
 	{
+		glEnable(GL_TEXTURE_2D);
 		int frame=27*glenz_frame;
 		glEnable(GL_DEPTH_TEST);
 		glDisable(GL_BLEND);
@@ -1231,6 +1155,7 @@ int DrawGLScene(void) // draw scene
 		glDrawArrays(GL_QUADS, 0, 24);
 		glDisableClientState(GL_COLOR_ARRAY);
 		glPopMatrix();
+		glDisable(GL_TEXTURE_2D);
 
 		int endFrame=27*(glenz_frame+1);
 		for (int i=frame+3; i<endFrame; i+=3) {
@@ -1239,7 +1164,6 @@ int DrawGLScene(void) // draw scene
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-			glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glDisableClientState(GL_COLOR_ARRAY);
@@ -1252,137 +1176,38 @@ int DrawGLScene(void) // draw scene
 	// draw liner
 	if (liner_flag)
 	{
-		glVertexPointer(2, GL_INT, 0, liner_vtx);
-		glBlendFunc(GL_ONE, GL_ONE);
-		int j=0;
-		liner_line=-1;
-		liner_count=(int)((main_angle-liner_angle)*20.0f)-5;
-		if (liner_count>liner_length) liner_count=liner_length;
-		float x=0;
-		float y=0;
-		for (int i=0; i<liner_count; i++)
-		{
-			j++;
-			car=(byte)txt[i];
-			if (car>32)
-			{
-				liner_color=(liner_count-i)*(0.05f); if (liner_color>1.0f) liner_color=1.0f;
-				angle=main_angle*2.0f+j*PID*12.0f;
-				radius=1.0f+(1.0f-liner_color)*6.0f;
-				glLoadIdentity();
-				glColor3f(liner_color*fade_value, liner_color*fade_value, liner_color*fade_value);
-				glRotatef(6.0f*cosf(angle)*(1.0f-liner_color), 0, 0, 1.0f);
-				glTranslatef(x+j*liner_w*2.0f+liner_w*1.5f*cosf(angle), y+liner_h*2.0f*cosf(angle), 0);
-				glRotatef(-12.5f*sinf(angle), 0, 0, 1.0f);
-				glScalef(radius, radius, 0);
-				float l_w=(car%16)*0.03125f;
-				float l_h=(car-car%16)*0.001953125f;
-				float liner_tex[]={ l_w,0.75f-l_h-0.03125f,l_w+0.03125f,0.75f-l_h-0.03125f,l_w+0.03125f,0.75f-l_h-0.00001f,l_w,0.75f-l_h-0.00001f };
-				glTexCoordPointer(2, GL_FLOAT, 0, liner_tex);
-				glDrawArrays(GL_QUADS, 0, 4);
-			}
-			if (car==13)
-			{
-				j=0;
-				liner_line++;
-				x=screen_w*0.5f-liner_max*liner_w;
-				y=screen_h*0.5f-(liner_n-1)*liner_h*1.25f+liner_line*liner_h*2.5f;
-			}
-		}
+		glDisable(GL_BLEND);
+		glPushAttrib(GL_LIST_BIT);
+		glListBase(fontBase-32);
+		glRasterPos2f(screen_w*0.5, screen_h*0.2*ratio_2d+cosf(main_angle)*10);
+		glCallLists(strlen(txt), GL_UNSIGNED_BYTE, txt);
+		glPopAttrib();
 	}
 	// draw dos
 	if (dos_flag)
 	{
-		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_BLEND);
 		glColor3f(0, 0, 0);
 		rectangle(0, 0, screen_w, screen_h);
 		glColor3f(1.0f, 1.0f, 1.0f);
-		rectangle(0, 0, screen_w-(int)(26.5f*ratio_2d), 10*ratio_2d);
-		rectangle(screen_w-(int)(25.5f*ratio_2d), 0, 11*ratio_2d, 10*ratio_2d);
-		rectangle(screen_w-(int)(13.5f*ratio_2d), 0, 11*ratio_2d, 10*ratio_2d);
-		rectangle(screen_w-(int)(1.5f*ratio_2d), 0, (int)(1.5f*ratio_2d), 10*ratio_2d);
-		rectangle(0, 10*ratio_2d, 1*ratio_2d, screen_h-10*ratio_2d);
-		rectangle(screen_w-1*ratio_2d, 10*ratio_2d, 1*ratio_2d, screen_h-10*ratio_2d);
-		rectangle(1*ratio_2d, screen_h-1*ratio_2d, screen_w-2*ratio_2d, 1*ratio_2d);
-		glColor3f(0, 0, 0);
-		rectangle((int)(34.5f*ratio_2d), 2*ratio_2d, screen_w-(int)(62.5f*ratio_2d), 2*ratio_2d);
-		rectangle((int)(34.5f*ratio_2d), 6*ratio_2d, screen_w-(int)(62.5f*ratio_2d), 2*ratio_2d);
-		rectangle(screen_w-(int)(24.5f*ratio_2d), 1*ratio_2d, 7*ratio_2d, 6*ratio_2d);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		rectangle(screen_w-(int)(23.5f*ratio_2d), 2*ratio_2d, 5*ratio_2d, 4*ratio_2d);
-		glColor3f(0, 0, 0);
-		rectangle(screen_w-(int)(22.5f*ratio_2d), 3*ratio_2d, 7*ratio_2d, 6*ratio_2d);
-		rectangle(screen_w-(int)(12.5f*ratio_2d), 1*ratio_2d, 7*ratio_2d, 6*ratio_2d);
-		glColor3f(0, 0, 0);
-		rectangle(screen_w-(int)(10.5f*ratio_2d), 2*ratio_2d, 7*ratio_2d, 7*ratio_2d);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		rectangle(screen_w-(int)(9.5f*ratio_2d), 3*ratio_2d, 5*ratio_2d, 5*ratio_2d);
-		rectangle(screen_w-8*ratio_2d, screen_h-9*ratio_2d, 7*ratio_2d, 8*ratio_2d);
-		glColor3f(0, 0, 0);
-		rectangle(screen_w-7*ratio_2d, screen_h-8*ratio_2d, 6*ratio_2d, 7*ratio_2d);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		rectangle(12*ratio_2d, screen_h-78*ratio_2d, 60*ratio_2d*timer_global, 7*ratio_2d);
-		rectangle(screen_w-4*ratio_2d, screen_h-8*ratio_2d, 4*ratio_2d, 2*ratio_2d);
-		rectangle(screen_w-7*ratio_2d, screen_h-5*ratio_2d, 2*ratio_2d, 5*ratio_2d);
-		rectangle(screen_w-6*ratio_2d, screen_h-7*ratio_2d, 1*ratio_2d, 1*ratio_2d);
-		rectangle(screen_w-4*ratio_2d, screen_h-5*ratio_2d, 2*ratio_2d, 3*ratio_2d);
-		glEnable(GL_TEXTURE_2D);
-		glVertexPointer(2, GL_INT, 0, shell_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, shell_tex);
-		glDrawArrays(GL_QUADS, 0, 4);
-		// text
-		glVertexPointer(2, GL_INT, 0, dos_vtx);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-		int j=0;
-		liner_line=-1;
-		liner_count=liner_length;
-		float x=0;
-		float y=0;
-		for (int i=0; i<liner_count; i++)
-		{
-			j++;
-			car=(byte)txt[i];
-			if (car>32)
-			{
-				glLoadIdentity();
-				glTranslated(x+j*(dos_w+2*ratio_2d), y, 0);
-				if (car>32)
-				{
-					float l_w=(car%16)*0.03125f;
-					float l_h=(car-car%16)*0.001953125f;
-					float dos_tex[]={ l_w+0.03125f,0.75f-l_h-0.03125f,l_w+0.03125f,0.75f-l_h,l_w,0.75f-l_h,l_w,0.75f-l_h-0.03125f };
-					glTexCoordPointer(2, GL_FLOAT, 0, dos_tex);
-					glDrawArrays(GL_QUADS, 0, 4);
-				}
-			}
-			if (car==13)
-			{
-				j=0;
-				liner_line++;
-				x=(float)(2*ratio_2d);
-				y=(float)(15*ratio_2d+liner_line*(dos_h+4*ratio_2d));
-			}
-		}
+		rectangle(20*ratio_2d, screen_h-78*ratio_2d, 60*ratio_2d*timer_global, 7*ratio_2d);
 
-		glDisable(GL_TEXTURE_2D);         // Disable textures to prevent color interference
-		glDisable(GL_BLEND);               // Enable blending for smooth edges
-		glRasterPos2f(50, 50);  // Set position
-		// Activate the font's display list
-		glPixelZoom(0.5f, 0.5f);
+		glDisable(GL_BLEND);
 		glPushAttrib(GL_LIST_BIT);
 		glListBase(fontBase-32);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		// Render the text
-		glCallLists(strlen(txt), GL_UNSIGNED_BYTE, txt);
-		glPixelZoom(1.0f, 1.0f);
+		glRasterPos2f(20*ratio_2d, 50*ratio_2d);
+		glCallLists(strlen(name), GL_UNSIGNED_BYTE, name);
+		glRasterPos2f(20*ratio_2d, 90*ratio_2d);
+		glCallLists(strlen(txt_dos1), GL_UNSIGNED_BYTE, txt_dos1);
+		glRasterPos2f(20*ratio_2d, 110*ratio_2d);
+		glCallLists(strlen(txt_dos2), GL_UNSIGNED_BYTE, txt_dos2);
+		glRasterPos2f(20*ratio_2d, 130*ratio_2d);
+		glCallLists(strlen(txt_dos3), GL_UNSIGNED_BYTE, txt_dos3);
 		glPopAttrib();
 	}
 	// draw flash
 	if (flash_flag)
 	{
-		glDisable(GL_TEXTURE_2D);
 		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 		angle=(main_angle-flash_angle)*1.0f;
 		if (angle>90.0f*PID) flash_flag=false;
@@ -1391,28 +1216,14 @@ int DrawGLScene(void) // draw scene
 		glLoadIdentity();
 		glVertexPointer(2, GL_INT, 0, scanline_vtx);
 		glDrawArrays(GL_QUADS, 0, 4);
-		glEnable(GL_TEXTURE_2D);
 	}
 	if (speed_flag)
 	{
-		glDisable(GL_TEXTURE_2D);
 		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 		float c=speed_value;
 		glColor3f(c, c, c);
 		glLoadIdentity();
 		glVertexPointer(2, GL_INT, 0, scanline_vtx);
-		glDrawArrays(GL_QUADS, 0, 4);
-		glEnable(GL_TEXTURE_2D);
-	}
-	// draw logo
-	if (logo_flag)
-	{
-		glLoadIdentity();
-		glBlendFunc(GL_SRC_COLOR, GL_ONE);
-		glTranslatef((float)(screen_w-logo_w-logo_margin), (float)(screen_h-logo_h-logo_margin-fabs(ratio_2d*4*synchro_value*cosf((main_angle-synchro_angle)*10.0f))), 0);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glVertexPointer(2, GL_INT, 0, logo_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, logo_tex);
 		glDrawArrays(GL_QUADS, 0, 4);
 	}
 	// draw loop
@@ -1424,39 +1235,7 @@ int DrawGLScene(void) // draw scene
 		glTranslated(loop_margin, screen_h-loop_h-loop_margin, 0);
 		glColor3f(0.25f+c*0.5f, 0.25f+c*0.125f, 0.25f-c*0.25f);
 		glVertexPointer(2, GL_INT, 0, loop_vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, loop_tex);
 		glDrawArrays(GL_QUADS, 0, 4);
-	}
-	// draw debug
-	if (debug_flag)
-	{
-		char debug[512];
-		sprintf(debug, "--+ DEBUG +--\nscreen=%dx%d\n2d ratio=%dx\nfps=%3.1f\naverage=%3.1f\nfps min=%3.1f\nfps max=%3.1f\nmusic=%02d-%02d\ntimer=%3.3fs\npattern=%1.3fs\nloop=%dx", screen_w, screen_h, ratio_2d, timer_fps, timer_fps_average, timer_fps_min, timer_fps_max, mod_ord, mod_row, mod_time*0.001f, timer_max*0.001f, loop_counter);
-		glVertexPointer(2, GL_INT, 0, debug_vtx);
-		glBlendFunc(GL_ONE, GL_ONE);
-		glLoadIdentity();
-		glColor3f(0.25f, 0.25f, 0.25f);
-		glTranslated(-debug_w+2*ratio_2d, debug_h+2*ratio_2d, 0);
-		int j=0;
-		for (int i=0; i<(int)strlen(debug); i++)
-		{
-			j++;
-			car=(byte)debug[i];
-			if (car==10)
-			{
-				glTranslated(-j*debug_w*2, debug_h*2, 0);
-				j=0;
-			}
-			glTranslated(debug_w*2, 0, 0);
-			if (car>32)
-			{
-				float l_w=(car%16)*0.03125f;
-				float l_h=(car-car%16)*0.001953125f;
-				float debug_tex[]={ l_w+0.03125f,0.75f-l_h-0.03125f,l_w+0.03125f,0.75f-l_h,l_w,0.75f-l_h,l_w,0.75f-l_h-0.03125f };
-				glTexCoordPointer(2, GL_FLOAT, 0, debug_tex);
-				glDrawArrays(GL_QUADS, 0, 4);
-			}
-		}
 	}
 	return true;
 }
@@ -1478,7 +1257,7 @@ void KillGLWindow(void)
 	}
 	if (hDC&&!ReleaseDC(hWnd, hDC)) { MessageBox(NULL, "Release Device Context Failed.", "SHUTDOWN ERROR", MB_OK|MB_ICONINFORMATION); hDC=NULL; }
 	if (hWnd&&!DestroyWindow(hWnd)) { MessageBox(NULL, "Could Not Release hWnd.", "SHUTDOWN ERROR", MB_OK|MB_ICONINFORMATION); hWnd=NULL; }
-	if (!UnregisterClass("razor1911", hInstance)) { MessageBox(NULL, "Could Not Unregister Class.", "SHUTDOWN ERROR", MB_OK|MB_ICONINFORMATION); hInstance=NULL; }
+	if (!UnregisterClass("bin", hInstance)) { MessageBox(NULL, "Could Not Unregister Class.", "SHUTDOWN ERROR", MB_OK|MB_ICONINFORMATION); hInstance=NULL; }
 	delete timer;
 }
 
@@ -1493,20 +1272,7 @@ int CreateGLWindow(char* title)
 	int h=GetSystemMetrics(SM_CYSCREEN);
 	screen_w=fullscreen ? w : window_w;
 	screen_h=fullscreen ? h : window_h;
-	timer_fps_min=32768;
-	timer_fps_max=0;
 	ratio_2d=(int)(screen_w/400);
-	logo_w=16*ratio_2d;
-	logo_h=16*ratio_2d;
-	logo_margin=2*ratio_2d;
-	logo_vtx[0]=logo_w;
-	logo_vtx[1]=0;
-	logo_vtx[2]=0;
-	logo_vtx[3]=0;
-	logo_vtx[4]=0;
-	logo_vtx[5]=logo_h;
-	logo_vtx[6]=logo_w;
-	logo_vtx[7]=logo_h;
 	loop_w=110*ratio_2d;
 	loop_h=10*ratio_2d;
 	loop_margin=3*ratio_2d;
@@ -1528,50 +1294,6 @@ int CreateGLWindow(char* title)
 	liner_vtx[5]=(int)(-liner_h*1.5f);
 	liner_vtx[6]=-liner_w;
 	liner_vtx[7]=-liner_h;
-	dos_w=2*ratio_2d;
-	dos_h=4*ratio_2d;
-	dos_vtx[0]=dos_w;
-	dos_vtx[1]=dos_h;
-	dos_vtx[2]=dos_w;
-	dos_vtx[3]=-dos_h;
-	dos_vtx[4]=-dos_w;
-	dos_vtx[5]=-dos_h;
-	dos_vtx[6]=-dos_w;
-	dos_vtx[7]=dos_h;
-	shell_vtx[0]=33*ratio_2d;
-	shell_vtx[1]=8*ratio_2d;
-	shell_vtx[2]=33*ratio_2d;
-	shell_vtx[3]=1*ratio_2d;
-	shell_vtx[4]=1*ratio_2d;
-	shell_vtx[5]=1*ratio_2d;
-	shell_vtx[6]=1*ratio_2d;
-	shell_vtx[7]=8*ratio_2d;
-	debug_w=2*ratio_2d;
-	debug_h=4*ratio_2d;
-	debug_vtx[0]=debug_w;
-	debug_vtx[1]=debug_h;
-	debug_vtx[2]=debug_w;
-	debug_vtx[3]=-debug_h;
-	debug_vtx[4]=-debug_w;
-	debug_vtx[5]=-debug_h;
-	debug_vtx[6]=-debug_w;
-	debug_vtx[7]=debug_h;
-	scanline_tex[0]=0;
-	scanline_tex[1]=0.7325f;
-	scanline_tex[2]=0;
-	scanline_tex[3]=0.7275f;
-	scanline_tex[4]=screen_h/256.0f;
-	scanline_tex[5]=0.7275f;
-	scanline_tex[6]=screen_h/256.0f;
-	scanline_tex[7]=0.7325f;
-	scanline_vtx[0]=screen_w;
-	scanline_vtx[1]=0;
-	scanline_vtx[2]=0;
-	scanline_vtx[3]=0;
-	scanline_vtx[4]=0;
-	scanline_vtx[5]=screen_h;
-	scanline_vtx[6]=screen_w;
-	scanline_vtx[7]=screen_h;
 	main_angle_prv=0;
 	WindowRect.left=(long)(fullscreen ? 0 : 2);		// set left value
 	WindowRect.right=(long)screen_w;					// set right value
@@ -1588,7 +1310,7 @@ int CreateGLWindow(char* title)
 	wc.hCursor=LoadCursor(NULL, IDC_ARROW);		// load arrow pointer
 	wc.hbrBackground=NULL;										// no background
 	wc.lpszMenuName=NULL;											// no menu
-	wc.lpszClassName="razor1911";							// set class name
+	wc.lpszClassName="bin";							// set class name
 	if (!RegisterClass(&wc))										// register window class
 	{
 		MessageBox(NULL, "windows FAIL", "ERROR", MB_OK|MB_ICONEXCLAMATION);
@@ -1631,7 +1353,7 @@ int CreateGLWindow(char* title)
 	AdjustWindowRectEx(&WindowRect, dwStyle, false, dwExStyle);	// adjust window to requested size
 	// create window
 	if (!(hWnd=CreateWindowEx(dwExStyle,		// extended style for window
-		"razor1911",												// class name
+		"bin",												// class name
 		title,															// window title
 		(dwStyle|														// defined window style
 			WS_CLIPSIBLINGS|										// required window style
@@ -1780,11 +1502,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 			if (keys[VK_F1])
 			{
-				debug_flag=!debug_flag;
-				timer_fps_total=0;
-				timer_fps_min=32768;
-				timer_fps_max=0;
-				frame_counter=0;
 				keys[VK_F1]=false;
 			}
 			if (keys[VK_F2])
@@ -1809,9 +1526,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				lake_flag=false;
 				tekk_flag=false;
 				glenz_flag=false;
-				logo_flag=true;
 				liner_flag=true;
 				hidden_flag=true;
+				dos_flag=false;
+				skip_dos=true;
 				intro_i=intro_n;
 				hidden=true;
 				loop_counter=0;

@@ -147,9 +147,6 @@
     <Image Include="resource\icon.ico">
       <DeploymentContent>true</DeploymentContent>
     </Image>
-    <Image Include="resource\map.bmp">
-      <DeploymentContent>true</DeploymentContent>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="data.rc" />
