@@ -522,6 +522,7 @@ int InitGL(void)
 	glDisable(GL_LIGHTING);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 	// fog
 	glFogi(GL_FOG_MODE, GL_LINEAR);		// fog mode
 	glFogfv(GL_FOG_COLOR, fog_color);	// fog color
@@ -999,6 +1000,7 @@ int DrawGLScene(void) // draw scene
 			}
 			glDisable(GL_BLEND);
 		}
+		glDisableClientState(GL_COLOR_ARRAY);
 	}
 	if (intro_flag||glenz_flag||stars_flag||lake_flag||tekk_flag||hidden_flag)
 	{
@@ -1176,7 +1178,6 @@ int DrawGLScene(void) // draw scene
 	// draw liner
 	if (liner_flag)
 	{
-		glDisable(GL_BLEND);
 		glPushAttrib(GL_LIST_BIT);
 		glListBase(fontBase-32);
 		glRasterPos2f(screen_w*0.5, screen_h*0.2*ratio_2d+cosf(main_angle)*10);
@@ -1186,13 +1187,11 @@ int DrawGLScene(void) // draw scene
 	// draw dos
 	if (dos_flag)
 	{
-		glDisable(GL_BLEND);
 		glColor3f(0, 0, 0);
 		rectangle(0, 0, screen_w, screen_h);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		rectangle(20*ratio_2d, screen_h-78*ratio_2d, 60*ratio_2d*timer_global, 7*ratio_2d);
 
-		glDisable(GL_BLEND);
 		glPushAttrib(GL_LIST_BIT);
 		glListBase(fontBase-32);
 		glRasterPos2f(20*ratio_2d, 50*ratio_2d);
