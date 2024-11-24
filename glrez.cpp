@@ -129,7 +129,6 @@ float cube_face_tex[48]={
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //leftside
 };
 float cube_white_col[72];         // cube white vertex colors
-float circuit_tex[16]={ 0.75f,0.75f,0.75f,1.0f,0.625f,1.0f,0.625f,0.75f,0.625f,0.75f,0.625f,1.0f,0.5f,1.0f,0.5f,0.75f };
 float circuit_vtx[24]={ cube_w,0,cube_w,cube_w,0,-cube_w,0,0,-cube_w,0,0,cube_w,0,0,cube_w,0,0,-cube_w,-cube_w,0,-cube_w,-cube_w,0,cube_w };
 /* circuit variable			*/
 bool circuit_flag=false;// flag
@@ -223,7 +222,6 @@ float star_x[star_n];			// position x
 float star_y[star_n];			// position y
 float star_z[star_n];			// position z
 float star_vtx[]={ -0.0375f,-0.0375f,0.0375f,-0.0375f,0.0375f,0.0375f,-0.0375f,0.0375f };
-float star_tex[]={ 0.40625f,0.96875f,0.375f,0.96875f,0.375f,1.0f,0.40625f,1.0f };
 /* vote variable				*/
 bool lake_flag=false;		// flag
 int vote_n1=48;					// number x
