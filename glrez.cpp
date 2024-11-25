@@ -16,7 +16,7 @@ float timer_global=0;
 float timer_global_previous=0;
 float timer_music=0;
 float timer_max=0;
-int loop_counter=-1;
+int loop_counter=0;
 bool done=false;
 
 FMUSIC_MODULE* mod;			// music handle
@@ -68,35 +68,22 @@ const float initial_r=0.4f;
 const float initial_g=0.4f;
 const float initial_b=0.2f;
 float fog_color[]={ initial_r,initial_g,initial_b,1.0f };	// fog color definition
-/* liner variable				*/
-bool liner_flag=false;	// flag
-int car;								// ascii code
-int liner_length;				// text length
-int liner_n;						// line number
-int liner_max;					// line max length
-int liner_line;					// line increment
-int liner_i;						// char increment
-int liner_count=0;			// counter
-int liner_count_start=0;// counter start
-float liner_angle;			// angle
-int liner_w;						// width
-int liner_h;						// height
-float liner_color;			// color increment
-int liner_vtx[8];				// vertex array
 /* text variable				*/
 char* name="Bin - Demos are cool";
 char* txt_dos1="F2: wireframe rendering";
 char* txt_dos2="F12: credits";
 char* txt_dos3="SPACE: fullscreen/windowed";
-char* txt_hidden1="\r\r\r   - Credits 1 -   \r\r code:    rez \r code:    bin \r\r      - * -      \r                 \r                 ";
-char* txt_hidden2="\r\r\r   - Credits 2 -   \r\r music: chris \r music:   bin \r\r      - * -      \r                 \r                 ";
-char* txt_hidden3="\r\r\rThanks goes to:    \r\r keops: timer code \r\r4mat,coda,bubsy \r                   \r                   ";
-char* txt_hidden4="\r\r\r  bye \r                 \r                 ";
-char* txt=txt_hidden1;
+char* txt_loop="Looping";
+
+char* txt_hidden1[]={ "- Credits 1 -", "code: rez", "code: bin", nullptr };
+char* txt_hidden2[]={ "- Credits 2 -", "music: bin", "credits-music: OneyNG", nullptr };
+char* txt_hidden3[]={ "Thanks for inspiration", "rez,keops,4mat,coda,bubsy", nullptr };
+char* txt_hidden4[]={ "bye", nullptr };
+char** txt=txt_hidden1;
 /* cube variable				*/
 bool cube_flag=false;		// flag
-int cube_n=16;					// number
-float cube_size=1.0f;		// size
+const int cube_n=16;					// number
+const float cube_size=1.0f;		// size
 float cube_x[256];			// position x
 float cube_y[256];			// position y
 float cube_z[256];			// position z
@@ -132,11 +119,6 @@ float cube_white_col[72];         // cube white vertex colors
 float circuit_vtx[24]={ cube_w,0,cube_w,cube_w,0,-cube_w,0,0,-cube_w,0,0,cube_w,0,0,cube_w,0,0,-cube_w,-cube_w,0,-cube_w,-cube_w,0,cube_w };
 /* circuit variable			*/
 bool circuit_flag=false;// flag
-/* loop variable				*/
-int loop_w;							// width
-int loop_h;							// height
-int loop_margin;				// margin
-int loop_vtx[8];				// vertex array
 /* glenz variable */
 bool glenz_flag=false;
 int glenz_frame=0;
@@ -241,7 +223,6 @@ float tekk_zoom_value=0;// zoom value
 float tekk_vtx[147456];	// vertex array
 float tekk_col[147456];	// color array
 /* hidden variable			*/
-bool hidden=false;			// flag
 bool hidden_flag=false;	// flag
 /* flash variable				*/
 bool flash_flag=false;	// flag
@@ -733,7 +714,7 @@ int DrawGLScene(void) // draw scene
 		if (mod_row>mod_prv_row+1) mod_row=mod_prv_row;
 		if (mod_row!=mod_prv_row)
 		{
-			if (!hidden)
+			if (!hidden_flag)
 			{
 				if (mod_row==0)
 				{
@@ -1174,12 +1155,15 @@ int DrawGLScene(void) // draw scene
 	}
 	init2d(screen_w, screen_h);
 	// draw liner
-	if (liner_flag)
+	if (hidden_flag)
 	{
 		glPushAttrib(GL_LIST_BIT);
 		glListBase(fontBase-32);
-		glRasterPos2f(screen_w*0.5, screen_h*0.2*ratio_2d+cosf(main_angle)*10);
-		glCallLists(strlen(txt), GL_UNSIGNED_BYTE, txt);
+		for (auto i=0; txt[i]!=nullptr; i++)
+		{
+			glRasterPos2f(screen_w*0.5-(strlen(txt[i])*5.0), screen_h*0.4+cosf(main_angle*2)*20+i*30);
+			glCallLists(strlen(txt[i]), GL_UNSIGNED_BYTE, txt[i]);
+		}
 		glPopAttrib();
 	}
 	// draw dos
@@ -1227,12 +1211,13 @@ int DrawGLScene(void) // draw scene
 	if (loop_counter>0)
 	{
 		float c=beat_value;
-		glLoadIdentity();
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
-		glTranslated(loop_margin, screen_h-loop_h-loop_margin, 0);
 		glColor3f(0.25f+c*0.5f, 0.25f+c*0.125f, 0.25f-c*0.25f);
-		glVertexPointer(2, GL_INT, 0, loop_vtx);
-		glDrawArrays(GL_QUADS, 0, 4);
+		glPushAttrib(GL_LIST_BIT);
+		glListBase(fontBase-32);
+		glRasterPos2f(10, screen_h-10);
+		glCallLists(strlen(txt_loop), GL_UNSIGNED_BYTE, txt_loop);
+		glPopAttrib();
 	}
 	return true;
 }
@@ -1270,27 +1255,6 @@ int CreateGLWindow(char* title)
 	screen_w=fullscreen ? w : window_w;
 	screen_h=fullscreen ? h : window_h;
 	ratio_2d=(int)(screen_w/400);
-	loop_w=110*ratio_2d;
-	loop_h=10*ratio_2d;
-	loop_margin=3*ratio_2d;
-	loop_vtx[0]=loop_w;
-	loop_vtx[1]=0;
-	loop_vtx[2]=0;
-	loop_vtx[3]=0;
-	loop_vtx[4]=0;
-	loop_vtx[5]=loop_h;
-	loop_vtx[6]=loop_w;
-	loop_vtx[7]=loop_h;
-	liner_w=4*ratio_2d;
-	liner_h=4*ratio_2d;
-	liner_vtx[0]=-liner_w;
-	liner_vtx[1]=(int)(liner_h*1.5f);
-	liner_vtx[2]=liner_w;
-	liner_vtx[3]=liner_h;
-	liner_vtx[4]=liner_w;
-	liner_vtx[5]=(int)(-liner_h*1.5f);
-	liner_vtx[6]=-liner_w;
-	liner_vtx[7]=-liner_h;
 	main_angle_prv=0;
 	WindowRect.left=(long)(fullscreen ? 0 : 2);		// set left value
 	WindowRect.right=(long)screen_w;					// set right value
@@ -1523,12 +1487,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				lake_flag=false;
 				tekk_flag=false;
 				glenz_flag=false;
-				liner_flag=true;
 				hidden_flag=true;
 				dos_flag=false;
 				skip_dos=true;
 				intro_i=intro_n;
-				hidden=true;
 				loop_counter=0;
 				mod_play=false;
 				mod_ord=-1;
