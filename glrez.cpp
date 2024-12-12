@@ -14,6 +14,7 @@
 Timer* timer;
 float timer_global=0;
 float timer_global_previous=0;
+float timer_delta=0;
 float timer_music=0;
 float timer_max=0;
 int loop_counter=0;
@@ -63,6 +64,15 @@ float	a_y=0;						// angle y
 float	a_z=0;						// angle z
 float	main_angle;				// main angle
 float	main_angle_prv;		// previous main angle
+float camera_target_y;
+float camera_target_x;
+float camera_target_z;
+float camera_vel_y;
+float camera_vel_z;
+float camera_vel_x;
+float camera_current_y=3;
+float camera_current_z=5;
+float camera_current_x=0;
 /* color/fogvariable				*/
 const float initial_r=0.4f;
 const float initial_g=0.4f;
@@ -375,7 +385,7 @@ void init3d(GLsizei width, GLsizei height)
 	glMatrixMode(GL_MODELVIEW);		// select modelview matrix
 	glLoadIdentity();							// reset modelview matrix
 	// Set camera position and orientation
-	gluLookAt(0, -5+cosf(main_angle*0.25f), 2+cosf(main_angle*0.25f)*10.0,                    // Camera position
+	gluLookAt(camera_current_x, camera_current_y, camera_current_z,                    // Camera position
 		0, 0, 0,           // Look-at point
 		1, 0, 0);                      // Up vector
 }
@@ -649,6 +659,24 @@ void SyncDrums()
 	
 }
 
+float SmoothDamp(float current, float target, float& currentVelocity, float smoothTime, float deltaTime) {
+	smoothTime=(smoothTime<0.0001f) ? 0.0001f : smoothTime;
+	float omega=2.0f/smoothTime;
+	float x=omega*deltaTime;
+	float expFactor=1.0f/(1.0f+x+0.48f*x*x+0.235f*x*x*x);
+	float change=current-target;
+	float originalTo=target;
+	target=current-change;
+	float temp=(currentVelocity+omega*change)*deltaTime;
+	currentVelocity=(currentVelocity-omega*temp)*expFactor;
+	float newPosition=target+(change+temp)*expFactor;
+	if ((originalTo-current)>0.0f==(newPosition>originalTo)) {
+		newPosition=originalTo;
+		currentVelocity=(newPosition-originalTo)/deltaTime;
+	}
+	return newPosition;
+}
+
 void IntroSync()
 {
 	switch (mod_row)
@@ -668,6 +696,9 @@ void IntroSync()
 	case  3: synchro(); break;
 	case  6: intro_i--; synchro(); break;
 	}
+	camera_target_y=-cos(speed_flag ? timer_global*2 : timer_global)*6;
+	camera_target_z=sin(speed_flag ? timer_global*2 : timer_global)*6;
+	camera_target_x=2;
 }
 
 void MakeBillboard()
@@ -690,6 +721,7 @@ int DrawGLScene(void) // draw scene
 {
 	// synchro
 	timer->update();
+	timer_delta=timer_global-timer_global_previous;
 	timer_global_previous=timer_global;
 	timer_global=timer->elapsed;
 	if (!pause)
@@ -787,8 +819,12 @@ int DrawGLScene(void) // draw scene
 						glenz_frame=2;
 						flash();
 					}
-					else
+					else {
 						intro_i++;
+						camera_target_y=-cos(timer_global)*6;
+						camera_target_z=sin(timer_global)*6;
+						camera_target_x=-2;
+					}
 					break;
 				case 8:
 					if (mod_row==0) {
@@ -831,6 +867,9 @@ int DrawGLScene(void) // draw scene
 				if (mod_row%8==4) synchro();
 			}
 		}
+		camera_current_y=SmoothDamp(camera_current_y, camera_target_y, camera_vel_y, 0.5f, timer_delta);
+		camera_current_z=SmoothDamp(camera_current_z, camera_target_z, camera_vel_z, 0.5f, timer_delta);
+		camera_current_x=SmoothDamp(camera_current_x, camera_target_x, camera_vel_x, 0.5f, timer_delta);
 	}
 	if (synchro_flag)
 	{
