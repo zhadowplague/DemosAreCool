@@ -37,7 +37,6 @@ GLuint fontBase;
 int keys[256];					// keyboard array
 int active=true;				// window active flag
 bool fullscreen=false;	// fullscreen flag
-bool pause=false;				// pause flag
 float nearplane=0.5f;		// nearplane
 float farplane=1000.0f;	// farplane
 bool polygon=true;			// polygon mode
@@ -73,6 +72,8 @@ float camera_vel_x;
 float camera_current_y=3;
 float camera_current_z=5;
 float camera_current_x=0;
+float camera_spin;
+float camera_smooth=0;
 /* color/fogvariable				*/
 const float initial_r=0.4f;
 const float initial_g=0.4f;
@@ -235,8 +236,8 @@ float tekk_col[147456];	// color array
 /* hidden variable			*/
 bool hidden_flag=false;	// flag
 /* flash variable				*/
-bool flash_flag=false;	// flag
-float flash_angle=0;		// angle
+bool fade_in=true;	// flag
+float fade_value=0;		// angle
 /* dos variable					*/
 bool dos_flag=true;// flag
 bool skip_dos=false;
@@ -255,10 +256,6 @@ float sync2_mul;				// multiplicator
 bool beat_flag=false;		// flag
 float beat_angle=0;			// angle
 float beat_value=0;			// value
-/* fade variable				*/
-bool fade_flag=false;		// flag
-float fade_angle=0;			// angle
-float fade_value=0;			// value
 /* move variable				*/
 bool move_flag=false;		// flag
 float move_angle=0;			// angle
@@ -390,22 +387,6 @@ void init3d(GLsizei width, GLsizei height)
 		1, 0, 0);                      // Up vector
 }
 
-void init2d(GLsizei width, GLsizei height)
-{
-	glViewport(0, 0, width, height);	// reset viewport
-	glMatrixMode(GL_PROJECTION);	// select projection matrix
-	glLoadIdentity();							// reset projection matrix
-	gluOrtho2D(0, width, height, 0);	// init orthographic mode
-	glMatrixMode(GL_MODELVIEW);		// select modelview matrix
-	glLoadIdentity();							// reset modelview matrix
-}
-
-void flash()
-{
-	flash_flag=true;
-	flash_angle=main_angle;
-}
-
 void fov_anim()
 {
 	fov_flag=true;
@@ -429,12 +410,6 @@ void beat()
 {
 	beat_flag=true;
 	beat_angle=main_angle;
-}
-
-void fade()
-{
-	fade_flag=true;
-	fade_angle=main_angle;
 }
 
 void move()
@@ -656,7 +631,6 @@ void SyncDrums()
 {
 	if (mod_row % 8 == 0)
 		synchro();
-	
 }
 
 float SmoothDamp(float current, float target, float& currentVelocity, float smoothTime, float deltaTime) {
@@ -696,9 +670,6 @@ void IntroSync()
 	case  3: synchro(); break;
 	case  6: intro_i--; synchro(); break;
 	}
-	camera_target_y=-cos(speed_flag ? timer_global*2 : timer_global)*6;
-	camera_target_z=sin(speed_flag ? timer_global*2 : timer_global)*6;
-	camera_target_x=2;
 }
 
 void MakeBillboard()
@@ -724,19 +695,20 @@ int DrawGLScene(void) // draw scene
 	timer_delta=timer_global-timer_global_previous;
 	timer_global_previous=timer_global;
 	timer_global=timer->elapsed;
-	if (!pause)
-	{
-		// compute rotation
-		main_angle_prv=main_angle;
-		main_angle=timer_global*100.0f*PID;
-	}
+	// compute rotation
+	main_angle_prv=main_angle;
+	main_angle=timer_global*100.0f*PID;
 	// start music
 	if (!mod_play&&(timer_global>dos_time||skip_dos))
 	{
 		dos_flag=false;
 		mod_play=true;
+		fade_in=false;
 		FMUSIC_PlaySong(mod);
 		timer_music=timer_global;
+		camera_current_y=-cos(timer_global)*6;
+		camera_current_z=sin(timer_global)*6;
+		camera_current_x=2;
 	}
 	if (mod_play)
 	{
@@ -771,6 +743,7 @@ int DrawGLScene(void) // draw scene
 						circuit_flag=false;
 						glenz_frame=2;
 						intro_i=intro_n;
+						camera_smooth=0;
 					}
 					IntroSync();
 					break;
@@ -780,11 +753,15 @@ int DrawGLScene(void) // draw scene
 					break;
 				case 3:
 					IntroSync();
-					if (mod_row==18) speed();
+					if (mod_row==24) {
+						speed();
+						fade_in=true;
+					}
 					break;
 				case 4:
 					if (mod_row==0)
 					{
+						fade_in=false;
 						stars_flag=false;
 						lake_flag=true;
 						cube_flag=true;
@@ -794,17 +771,37 @@ int DrawGLScene(void) // draw scene
 						move_flag=false;
 						speed_flag=false;
 						speed_value=1.0f;
-						flash();
+						camera_current_x=1;
+						camera_current_y=2;
+						camera_current_z=24;
+						camera_target_x=1;
+						camera_target_y=-2;
+						camera_target_z=-24;
+						camera_smooth=5;
 						fov_anim();
 					}
 					SyncDrums();
 					break;
 				case 5:
+					camera_target_y=-12;
+					camera_target_z=12;
 					SyncDrums();
 					break;
 				case 6:
+					if (mod_row==0) {
+						tekk_flag=true;
+						camera_target_y=-6;
+						camera_target_z=6;
+						camera_target_x=6;
+					}
 					SyncDrums();
-					if (mod_row==54) speed();
+					if (mod_row==57) {
+						camera_target_y=-cos(camera_spin)*6;
+						camera_target_z=sin(camera_spin)*6;
+						camera_target_x=-3;
+						camera_smooth=0.3;
+						speed();
+					}
 					break;
 				case 7:
 					if (mod_row==0)
@@ -817,19 +814,18 @@ int DrawGLScene(void) // draw scene
 						intro_i=0;
 						intro_flag=true;
 						glenz_frame=2;
-						flash();
+						camera_smooth=0;
 					}
 					else {
 						intro_i++;
-						camera_target_y=-cos(timer_global)*6;
-						camera_target_z=sin(timer_global)*6;
-						camera_target_x=-2;
 					}
 					break;
 				case 8:
 					if (mod_row==0) {
 						loop_counter++;
-						if (loop_counter>0) fov_anim();
+						fade_in=false;
+						if (loop_counter>0) 
+							fov_anim();
 					}
 					break;
 				}
@@ -844,7 +840,7 @@ int DrawGLScene(void) // draw scene
 					mod_ord=FMUSIC_GetOrder(mod);
 					if (mod_ord==0)
 					{
-						flash();
+						fade_in=true;
 						fog_color[0]=0;
 						fog_color[1]=0;
 						fog_color[2]=0;
@@ -867,9 +863,30 @@ int DrawGLScene(void) // draw scene
 				if (mod_row%8==4) synchro();
 			}
 		}
-		camera_current_y=SmoothDamp(camera_current_y, camera_target_y, camera_vel_y, 0.5f, timer_delta);
-		camera_current_z=SmoothDamp(camera_current_z, camera_target_z, camera_vel_z, 0.5f, timer_delta);
-		camera_current_x=SmoothDamp(camera_current_x, camera_target_x, camera_vel_x, 0.5f, timer_delta);
+		if (!hidden_flag) {
+			switch (mod_ord)
+			{
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+				camera_spin+=timer_delta*(speed_flag?3:0.5);
+				camera_target_y=-cos(camera_spin)*6;
+				camera_target_z=sin(camera_spin)*6;
+				camera_target_x=2;
+				break;
+			case 7:
+			case 8:
+				camera_spin+=timer_delta*(speed_flag ? 3 : 0.5);
+				camera_target_y=-cos(camera_spin)*6;
+				camera_target_z=sin(camera_spin)*6;
+				camera_target_x=-3;
+				break;
+			}
+			camera_current_y=SmoothDamp(camera_current_y, camera_target_y, camera_vel_y, camera_smooth, timer_delta);
+			camera_current_z=SmoothDamp(camera_current_z, camera_target_z, camera_vel_z, camera_smooth, timer_delta);
+			camera_current_x=SmoothDamp(camera_current_x, camera_target_x, camera_vel_x, camera_smooth, timer_delta);
+		}
 	}
 	if (synchro_flag)
 	{
@@ -901,16 +918,6 @@ int DrawGLScene(void) // draw scene
 			beat_flag=false;
 		}
 	}
-	if (fade_flag)
-	{
-		angle=(main_angle-fade_angle)*1.0f;
-		fade_value=1.0f-sinf(angle);
-		if (angle>90.0f*PID)
-		{
-			fade_value=0;
-			fade_flag=false;
-		}
-	}
 	if (move_flag)
 	{
 		angle=(main_angle-move_angle)*2.0f;
@@ -924,11 +931,6 @@ int DrawGLScene(void) // draw scene
 	{
 		angle=(main_angle-speed_angle)*0.45f;
 		speed_value=cosf(angle);
-		if (angle>90.0f*PID)
-		{
-			speed_value=0;
-			speed_flag=false;
-		}
 	}
 	// clear screen and depth buffer
 	fov=fov_base+15.0f*sinf((main_angle-fov_angle)*0.25f);
@@ -986,7 +988,7 @@ int DrawGLScene(void) // draw scene
 		//}
 		//draw sun
 		glVertexPointer(3, GL_FLOAT, 0, sun_vtx);
-		glLoadIdentity();
+		glPushMatrix();
 		glTranslatef(p_x, p_y, p_z);
 		glRotatef(a_x, 1.0f, 0, 0);
 		glRotatef(a_y, 0, 1.0f, 0);
@@ -997,6 +999,7 @@ int DrawGLScene(void) // draw scene
 			sun_vtx[i]=cube_vtx[i]*cosf(angle);
 			sun_vtx[i+1]=cube_vtx[i+1]*sinf(angle);
 		}
+		glPopMatrix();
 
 		if (circuit_flag)
 		{
@@ -1005,7 +1008,7 @@ int DrawGLScene(void) // draw scene
 			glBlendFunc(GL_ONE, GL_DST_ALPHA);
 			for (int i=0; i<k; i++)
 			{
-				glLoadIdentity();
+				glPushMatrix();
 				glTranslatef(p_x, p_y, p_z);
 				glRotatef(a_x, 1.0f, 0, 0);
 				glRotatef(a_y, 0, 1.0f, 0);
@@ -1015,9 +1018,11 @@ int DrawGLScene(void) // draw scene
 				float circuit_col[]={ c1,0,c2,c2,c1,0,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,0,c2,c1,c1,0,c2 };
 				glColorPointer(3, GL_FLOAT, 0, circuit_col);
 				glDrawArrays(GL_QUADS, 0, 8);
+				glPopMatrix();
 			}
 			glDisable(GL_BLEND);
 		}
+
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
 	if (intro_flag||glenz_flag||stars_flag||lake_flag||tekk_flag||hidden_flag)
@@ -1158,13 +1163,13 @@ int DrawGLScene(void) // draw scene
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
 	glDisable(GL_FOG);
+	glDisable(GL_BLEND);
 	// draw glenz
 	if (glenz_flag)
 	{
 		glEnable(GL_TEXTURE_2D);
 		int frame=27*glenz_frame;
 		glEnable(GL_DEPTH_TEST);
-		glDisable(GL_BLEND);
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
@@ -1189,10 +1194,16 @@ int DrawGLScene(void) // draw scene
 			glDisableClientState(GL_COLOR_ARRAY);
 			glPopMatrix();
 		}
-		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
 	}
-	init2d(screen_w, screen_h);
+	//init2d(screen_w, screen_h);
+	glViewport(0, 0, screen_w, screen_h);	// reset viewport
+	glMatrixMode(GL_PROJECTION);	// select projection matrix
+	glLoadIdentity();							// reset projection matrix
+	gluOrtho2D(0, screen_w, screen_h, 0);	// init orthographic mode
+	glMatrixMode(GL_MODELVIEW);		// select modelview matrix
+	glLoadIdentity();							// reset modelview matrix
+
 	// draw liner
 	if (hidden_flag)
 	{
@@ -1205,11 +1216,15 @@ int DrawGLScene(void) // draw scene
 		}
 		glPopAttrib();
 	}
+	// draw fade
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
+	fade_value=!fade_in ? min(1, max(0, fade_value+timer_delta)) : max(0, min(1, fade_value-timer_delta));
+	glColor4f(0, 0, 0, fade_value);
+	rectangle(0, 0, screen_w, screen_h);
 	// draw dos
 	if (dos_flag)
 	{
-		glColor3f(0, 0, 0);
-		rectangle(0, 0, screen_w, screen_h);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		rectangle(20*ratio_2d, screen_h-78*ratio_2d, 60*ratio_2d*timer_global, 7*ratio_2d);
 
@@ -1225,23 +1240,11 @@ int DrawGLScene(void) // draw scene
 		glCallLists(strlen(txt_dos3), GL_UNSIGNED_BYTE, txt_dos3);
 		glPopAttrib();
 	}
-	// draw flash
-	if (flash_flag)
-	{
-		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-		angle=(main_angle-flash_angle)*1.0f;
-		if (angle>90.0f*PID) flash_flag=false;
-		float c=sinf(angle);
-		glColor3f(c, c, c);
-		glLoadIdentity();
-		glVertexPointer(2, GL_INT, 0, scanline_vtx);
-		glDrawArrays(GL_QUADS, 0, 4);
-	}
+
 	if (speed_flag)
 	{
 		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-		float c=speed_value;
-		glColor3f(c, c, c);
+		glColor3f(speed_value, speed_value, speed_value);
 		glLoadIdentity();
 		glVertexPointer(2, GL_INT, 0, scanline_vtx);
 		glDrawArrays(GL_QUADS, 0, 4);
