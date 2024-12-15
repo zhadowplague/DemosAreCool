@@ -18,6 +18,7 @@ float timer_delta=0;
 float timer_music=0;
 float timer_max=0;
 int loop_counter=0;
+bool is_looping=false;
 bool done=false;
 
 FMUSIC_MODULE* mod;			// music handle
@@ -42,11 +43,8 @@ float farplane=1000.0f;	// farplane
 bool polygon=true;			// polygon mode
 int ratio_2d=1;					// 2d ratio
 /* fov variable					*/
-bool fov_flag=false;		// flag
-float fov_base=60;			// base fov angle
+const float fov_base=80;			// base fov angle
 float fov=fov_base;			// field of view angle
-float fov_angle=0;			// angle
-float fov_value=0;			// value
 /* window variable			*/
 int window_w=800;				// width
 int window_h=500;				// height
@@ -385,12 +383,6 @@ void init3d(GLsizei width, GLsizei height)
 		1, 0, 0);                      // Up vector
 }
 
-void fov_anim()
-{
-	fov_flag=true;
-	fov_angle=main_angle;
-}
-
 void synchro()
 {
 	synchro_flag=true;
@@ -727,16 +719,18 @@ int DrawGLScene(void) // draw scene
 				if ((mod_ord==16||mod_ord==17)&&(mod_row==52)) synchro();
 				if ((mod_ord==21)&&(mod_row==8||mod_row==24||mod_row==56)) synchro();
 				if ((mod_ord>27&&mod_ord<32)&&(mod_row%8==0)) sync2(1.75f);
-				if ((loop_counter>0)&&(mod_row%16==0)) beat();
+				if ((is_looping)&&(mod_row%16==0)) beat();
 				if ((mod_ord>3&&mod_ord<7)&&mod_row%4==0) glenz_frame=(glenz_frame==0 ? 1 : 0);
 				switch (mod_ord)
 				{
 				case 0:
 					if (mod_row==0) {
+						is_looping=loop_counter>0;
 						intro_flag=true;
 						stars_flag=true;
 						glenz_flag=true;
 						cube_flag=false;
+						lake_flag=false;
 						circuit_flag=false;
 						glenz_frame=2;
 						intro_i=intro_n;
@@ -758,6 +752,7 @@ int DrawGLScene(void) // draw scene
 				case 4:
 					if (mod_row==0)
 					{
+						tekk_flag=true;
 						fade_in=false;
 						stars_flag=false;
 						lake_flag=true;
@@ -775,7 +770,6 @@ int DrawGLScene(void) // draw scene
 						camera_target_y=-2;
 						camera_target_z=-24;
 						camera_smooth=5;
-						fov_anim();
 					}
 					SyncDrums();
 					break;
@@ -786,7 +780,6 @@ int DrawGLScene(void) // draw scene
 					break;
 				case 6:
 					if (mod_row==0) {
-						tekk_flag=true;
 						camera_target_y=-6;
 						camera_target_z=6;
 						camera_target_x=6;
@@ -807,6 +800,7 @@ int DrawGLScene(void) // draw scene
 						cube_flag=true;
 						circuit_flag=true;
 						speed_flag=false;
+						lake_flag=false;
 						stars_flag=true;
 						intro_i=0;
 						intro_flag=true;
@@ -821,8 +815,6 @@ int DrawGLScene(void) // draw scene
 					if (mod_row==0) {
 						loop_counter++;
 						fade_in=false;
-						if (loop_counter>0) 
-							fov_anim();
 					}
 					break;
 				}
@@ -935,14 +927,6 @@ int DrawGLScene(void) // draw scene
 		speed_value=cosf(angle);
 	}
 	// clear screen and depth buffer
-	fov=fov_base+15.0f*sinf((main_angle-fov_angle)*0.25f);
-	if (fov_flag)
-	{
-		angle=(main_angle-fov_angle)*0.25f;
-		fov_value=sinf(angle);
-		fov+=fov_value*fov_base-fov_base;
-		if (angle>90.0f*PID) fov_flag=false;
-	}
 	init3d(screen_w, screen_h);
 	glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -1026,11 +1010,7 @@ int DrawGLScene(void) // draw scene
 
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
-	if (intro_flag||glenz_flag||stars_flag||lake_flag||tekk_flag||hidden_flag)
-	{
-		fov=fov_base+((!lake_flag) ? 30.0f : 10.0f);
-		init3d(screen_w, screen_h);
-	}
+
 	if (intro_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
@@ -1249,7 +1229,7 @@ int DrawGLScene(void) // draw scene
 		glDrawArrays(GL_QUADS, 0, 4);
 	}
 	// draw loop
-	if (loop_counter>0)
+	if (is_looping)
 	{
 		float c=beat_value;
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
