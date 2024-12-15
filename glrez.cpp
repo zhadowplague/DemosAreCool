@@ -53,9 +53,6 @@ int screen_h;						// height
 int window_color=32;		// color depth
 int window_depth=16;		// depth buffer
 /* object variable			*/
-float	p_x=0;						// position x
-float	p_y=0;						// position y
-float	p_z=0;						// position z
 float	main_angle;				// main angle
 float	main_angle_prv;		// previous main angle
 float camera_target_y;
@@ -203,8 +200,7 @@ int intro_i=1;					// counter
 float intro_angle=0;		// angle
 /* tunnel variable			*/
 bool stars_flag=false;	// flag
-const int tunnel_n1=64;				// depth number
-const int tunnel_n2=16;				// circle number
+const int stars_z_dist=64;				// depth number
 const int star_n=2560;		// total star number
 float star_x[star_n];			// position x
 float star_y[star_n];			// position y
@@ -252,10 +248,6 @@ float sync2_mul;				// multiplicator
 bool beat_flag=false;		// flag
 float beat_angle=0;			// angle
 float beat_value=0;			// value
-/* move variable				*/
-bool move_flag=false;		// flag
-float move_angle=0;			// angle
-float move_value=0;			// value
 /* speed variable				*/
 bool speed_flag=false;	// flag
 float speed_angle=0;		// angle
@@ -402,23 +394,10 @@ void beat()
 	beat_angle=main_angle;
 }
 
-void move()
-{
-	move_flag=true;
-	move_angle=main_angle;
-}
-
 void speed()
 {
 	speed_flag=true;
 	speed_angle=main_angle;
-}
-
-void tekk_zoom()
-{
-	tekk_zoom_flag=true;
-	tekk_zoom_angle=main_angle;
-	tekk_zoom_value=0;
 }
 
 void glenz() {
@@ -506,7 +485,7 @@ int InitGL(void)
 		radius=1.5f*1.125f+((radius<0.0f) ? -radius : radius);
 		star_x[i]=radius*cosf(angle);
 		star_y[i]=radius*sinf(angle);
-		star_z[i]=(rand()%(int)(0.25f*tunnel_n1*1000))*0.001f;
+		star_z[i]=(rand()%(int)(0.25f*stars_z_dist*1000))*0.001f;
 		if (angle>180) star_z[i]=-star_z[i];
 	}
 	float y=0;
@@ -760,13 +739,12 @@ int DrawGLScene(void) // draw scene
 						cube_angle=main_angle;
 						circuit_flag=false;
 						intro_flag=false;
-						move_flag=false;
 						speed_flag=false;
 						speed_value=1.0f;
 						camera_current_x=1;
-						camera_current_y=2;
+						camera_current_y=3;
 						camera_current_z=24;
-						camera_target_x=1;
+						camera_target_x=3;
 						camera_target_y=-2;
 						camera_target_z=-24;
 						camera_smooth=5;
@@ -774,15 +752,19 @@ int DrawGLScene(void) // draw scene
 					SyncDrums();
 					break;
 				case 5:
-					camera_target_y=-12;
-					camera_target_z=12;
+					camera_target_y=-16;
+					camera_target_z=16;
+					camera_target_x=6;
 					SyncDrums();
 					break;
 				case 6:
 					if (mod_row==0) {
-						camera_target_y=-6;
+						camera_target_y=3;
 						camera_target_z=6;
-						camera_target_x=6;
+						camera_target_x=7;
+						tekk_zoom_flag=true;
+						tekk_zoom_angle=main_angle;
+						tekk_zoom_value=0;
 					}
 					SyncDrums();
 					if (mod_row==57) {
@@ -796,6 +778,7 @@ int DrawGLScene(void) // draw scene
 				case 7:
 					if (mod_row==0)
 					{
+						tekk_zoom_flag=false;
 						tekk_flag=false;
 						cube_flag=true;
 						circuit_flag=true;
@@ -912,15 +895,6 @@ int DrawGLScene(void) // draw scene
 			beat_flag=false;
 		}
 	}
-	if (move_flag)
-	{
-		angle=(main_angle-move_angle)*2.0f;
-		move_value=1.0f-sinf(angle);
-		if (angle>90.0f*PID)
-		{
-			move_value=0;
-		}
-	}
 	if (speed_flag)
 	{
 		angle=(main_angle-speed_angle)*0.45f;
@@ -939,11 +913,9 @@ int DrawGLScene(void) // draw scene
 		glDisable(GL_BLEND);
 		angle=cosf((cube_angle-main_angle)*0.125f);
 		radius=cube_size-cube_size*angle;
-		p_x=0;
-		p_y=3.0f-2.0f*angle;
-		p_z=-14.0f+2.0f*angle;
-		float a_x=60.0f+10.0f*angle;
-		float a_y=-60.0f+(cube_angle-main_angle)*8.0f+speed_value*180.0f;
+		float p_x=0;
+		float p_y=3.0f-2.0f*angle;
+		float p_z=-14.0f+2.0f*angle;
 		float h=(float)(cube_size*0.1f+(circuit_flag ? 0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)) : 0));
 		int k=0;
 		for (int i=0; i<cube_n; i++)
@@ -960,6 +932,8 @@ int DrawGLScene(void) // draw scene
 				k++;
 			}
 		}
+		float a_x=60.0f+10.0f*angle;
+		float a_y=-60.0f+(cube_angle-main_angle)*8.0f+speed_value*180.0f;
 		//glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 		//for (int i=0; i<k; i++)
 		//{
@@ -974,9 +948,7 @@ int DrawGLScene(void) // draw scene
 		//draw sun
 		glVertexPointer(3, GL_FLOAT, 0, sun_vtx);
 		glPushMatrix();
-		glTranslatef(p_x, p_y, p_z);
-		glRotatef(a_x, 1.0f, 0, 0);
-		glRotatef(a_y, 0, 1.0f, 0);
+		glTranslatef(4, 16, 0);
 		glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 		glDrawArrays(GL_QUADS, 0, 20);
 		for (int i=0; i<72; i+=2)
@@ -1051,9 +1023,7 @@ int DrawGLScene(void) // draw scene
 		float w=0.325f;
 		float h=0.325f;
 		angle=sync2_value*cosf((main_angle-sync2_angle)*1.25f);
-		p_x=-vote_n1*vote_w*0.25f;
-		p_y=-32.0f*angle;
-		p_z=-16.0f;
+		float p_x=-vote_n1*vote_w*0.25f;
 		float z=-vote_n2*vote_w*0.5f;
 		radius=1.0f;
 		glVertexPointer(2, GL_FLOAT, 0, vote_vtx);
@@ -1086,7 +1056,6 @@ int DrawGLScene(void) // draw scene
 			if (angle>90.0f*PID)
 			{
 				tekk_zoom_value=0;
-				tekk_zoom_flag=false;
 			}
 			fog_color[0]=0.25f+tekk_zoom_value*0.25f;
 			fog_color[1]=0.2f-tekk_zoom_value*0.125f;
@@ -1502,7 +1471,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				intro_flag=false;
 				cube_flag=false;
 				circuit_flag=false;
-				move_flag=false;
 				speed_flag=false;
 				stars_flag=true;
 				lake_flag=false;
