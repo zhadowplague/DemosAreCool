@@ -58,9 +58,6 @@ int window_depth=16;		// depth buffer
 float	p_x=0;						// position x
 float	p_y=0;						// position y
 float	p_z=0;						// position z
-float	a_x=0;						// angle x
-float	a_y=0;						// angle y
-float	a_z=0;						// angle z
 float	main_angle;				// main angle
 float	main_angle_prv;		// previous main angle
 float camera_target_y;
@@ -223,11 +220,12 @@ float vote_w=0.5f;			// space between dot
 float vote_vtx[]={ -0.325f,-0.325f,0.325f,-0.325f,0.325f,0.325f,-0.325f,0.325f };
 /* tekk variable				*/
 bool tekk_flag=false;		// flag
-int tekk_bar=48;				// bar number
-int tekk_n=64;					// polygon per bar
-float tekk_w=0.5f;			// space between bar
-float tekk_size=0.125f;	// bar size
-float tekk_radius=1.5f;	// radius
+const int tekk_bar=48;				// bar number
+const int tekk_n=64;					// polygon per bar
+const float tekk_v=16.0f;					// verts per quad
+const float tekk_w=0.5f;			// space between bar
+const float tekk_size=0.125f;	// bar size
+const float tekk_radius=1.5f;	// radius
 bool tekk_zoom_flag=false;// zoom flag
 float tekk_zoom_angle=0;// zoom angle
 float tekk_zoom_value=0;// zoom value
@@ -522,13 +520,12 @@ int InitGL(void)
 	float y=0;
 	int k=0;
 	float x1, x2, y1, y2;
+	y1=y-tekk_size;
+	y2=y+tekk_size;
 	for (int i=0; i<tekk_bar; i++)
 	{
 		x1=-tekk_w;
 		x2=0;
-		y+=tekk_w*2.0f;
-		y1=y-tekk_size;
-		y2=y+tekk_size;
 		for (int j=0; j<tekk_n; j++)
 		{
 			x1+=tekk_w;
@@ -840,7 +837,6 @@ int DrawGLScene(void) // draw scene
 					mod_ord=FMUSIC_GetOrder(mod);
 					if (mod_ord==0)
 					{
-						fade_in=true;
 						fog_color[0]=0;
 						fog_color[1]=0;
 						fog_color[2]=0;
@@ -886,6 +882,12 @@ int DrawGLScene(void) // draw scene
 			camera_current_y=SmoothDamp(camera_current_y, camera_target_y, camera_vel_y, camera_smooth, timer_delta);
 			camera_current_z=SmoothDamp(camera_current_z, camera_target_z, camera_vel_z, camera_smooth, timer_delta);
 			camera_current_x=SmoothDamp(camera_current_x, camera_target_x, camera_vel_x, camera_smooth, timer_delta);
+		}
+		else {
+			camera_spin+=timer_delta*(speed_flag ? 3 : 0.5);
+			camera_current_y=-cos(camera_spin)*6;
+			camera_current_z=sin(camera_spin)*6;
+			camera_current_x=-3;
 		}
 	}
 	if (synchro_flag)
@@ -956,9 +958,8 @@ int DrawGLScene(void) // draw scene
 		p_x=0;
 		p_y=3.0f-2.0f*angle;
 		p_z=-14.0f+2.0f*angle;
-		a_x=60.0f+10.0f*angle;
-		a_y=-60.0f+(cube_angle-main_angle)*8.0f+speed_value*180.0f;
-		a_z=0;
+		float a_x=60.0f+10.0f*angle;
+		float a_y=-60.0f+(cube_angle-main_angle)*8.0f+speed_value*180.0f;
 		float h=(float)(cube_size*0.1f+(circuit_flag ? 0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)) : 0));
 		int k=0;
 		for (int i=0; i<cube_n; i++)
@@ -1058,7 +1059,7 @@ int DrawGLScene(void) // draw scene
 			glPushMatrix();
 			glTranslatef(star_x[i], star_y[i], star_z[i]);
 			MakeBillboard();
-			glRotatef(a_z, 0, 0, 1.0f);
+			glRotatef(0, 0, 0, 1.0f);
 			glDrawArrays(GL_QUADS, 0, 4);
 			glPopMatrix();
 		}
@@ -1070,8 +1071,6 @@ int DrawGLScene(void) // draw scene
 		float w=0.325f;
 		float h=0.325f;
 		angle=sync2_value*cosf((main_angle-sync2_angle)*1.25f);
-		a_x=50.0f;
-		a_y=-main_angle*16.0f-120.0f*angle;
 		p_x=-vote_n1*vote_w*0.25f;
 		p_y=-32.0f*angle;
 		p_z=-16.0f;
@@ -1114,12 +1113,6 @@ int DrawGLScene(void) // draw scene
 			fog_color[2]=0.0f+tekk_zoom_value*0.125f;
 			glFogfv(GL_FOG_COLOR, fog_color);
 		}
-		p_x=-2.0f;
-		p_y=-tekk_bar*tekk_w+0.5f*cosf(main_angle*0.5f);
-		p_z=-7.0f;
-		a_x=-36.0f;
-		a_y=90.0f;
-		a_z=0;
 		float y=0;
 		int k=0;
 		float z1, z2=0;
@@ -1131,7 +1124,7 @@ int DrawGLScene(void) // draw scene
 			for (int j=0; j<tekk_n; j++)
 			{
 				float angle2=1080.0f*PID/tekk_n*j+a2;
-				float z=sync2_value*2.0f*(rand()%100)/200.0f*cosf((main_angle-sync2_angle)*16.0f);
+				float z=sync2_value*2.0f*(rand()%100)/200.0f*cosf((main_angle-sync2_angle)*tekk_v);
 				z1=z2;
 				z2=(float)fabs(angle+tekk_radius*sinf(angle2))+z;
 				if (z2<0.5f) z2=0.5f;
@@ -1154,12 +1147,18 @@ int DrawGLScene(void) // draw scene
 		glVertexPointer(3, GL_FLOAT, 0, tekk_vtx);
 		glColorPointer(3, GL_FLOAT, 0, tekk_col);
 		glBlendFunc(GL_SRC_COLOR, GL_DST_ALPHA);
-		glLoadIdentity();
-		glRotatef(a_x, 1.0f, 0, 0);
-		glRotatef(a_z, 0, 1.0f, 0);
-		glRotatef(a_y, 0, 0, 1.0f);
-		glTranslatef(p_x, p_y, p_z);
-		glDrawArrays(GL_QUADS, 0, tekk_bar*tekk_n*16);
+		for (int i=0; i<tekk_bar; i++)
+		{
+			glPushMatrix();
+			glRotatef(90, 0, 1, 0);
+			glRotatef(180, 0, 0, 1);
+			glRotatef(90, 0, 0, 1);
+			glTranslatef(-16, 0, 0);
+			glRotatef(360*(float)i/(float)tekk_bar, 0, 0, 1);
+			glTranslatef(0, 24, 0);
+			glDrawArrays(GL_QUADS, tekk_n*i*tekk_v, tekk_n*tekk_v);
+			glPopMatrix();
+		}
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
 	glDisable(GL_FOG);
@@ -1531,6 +1530,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				glenz_flag=false;
 				hidden_flag=true;
 				dos_flag=false;
+				fade_in=false;
 				skip_dos=true;
 				intro_i=intro_n;
 				loop_counter=0;
