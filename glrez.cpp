@@ -110,7 +110,6 @@ float cube_vtx[72]={
 	// Bottom face
 	-cube_size/2, -cube_size/2,  cube_size/2,   -cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2,  cube_size/2
 };
-float sun_vtx[72];
 float cube_face_tex[48]={
 	1, 0.4, 1, 1, 0, 1,0, 0.4, //front
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
@@ -124,7 +123,7 @@ float circuit_vtx[24]={ cube_w,0,cube_w,cube_w,0,-cube_w,0,0,-cube_w,0,0,cube_w,
 /* circuit variable			*/
 bool circuit_flag=false;// flag
 /* glenz variable */
-bool glenz_flag=false;
+bool glenz_flag=true;
 int glenz_frame=0;
 int glenz_scale_frame=0;
 const int glenz_n=81;
@@ -221,9 +220,6 @@ const float tekk_v=16.0f;					// verts per quad
 const float tekk_w=0.5f;			// space between bar
 const float tekk_size=0.125f;	// bar size
 const float tekk_radius=1.5f;	// radius
-bool tekk_zoom_flag=false;// zoom flag
-float tekk_zoom_angle=0;// zoom angle
-float tekk_zoom_value=0;// zoom value
 float tekk_vtx[147456];	// vertex array
 float tekk_col[147456];	// color array
 /* hidden variable			*/
@@ -443,7 +439,6 @@ void cube()
 	for (int i=0; i<72; i++)
 	{
 		cube_white_col[i]=1;
-		sun_vtx[i]=cube_vtx[i];
 	}
 }
 
@@ -454,9 +449,8 @@ float sfi;
 int InitGL(void)
 {
 	// Reset geometry
-	cur_geom = geom_table[0];
+	cur_geom = geom_table[2];
 	cur_geom->init(cur_geom);
-	DrawWithVArrays(cur_geom);
 	InitVlen(cur_geom, cur_geom->total_pts, cur_geom->pts);
 	sf = 0.0f;
 	sfi = cur_geom->sf_inc;
@@ -775,9 +769,6 @@ int DrawGLScene(void) // draw scene
 						camera_target_y=3;
 						camera_target_z=6;
 						camera_target_x=7;
-						tekk_zoom_flag=true;
-						tekk_zoom_angle=main_angle;
-						tekk_zoom_value=0;
 					}
 					SyncDrums();
 					if (mod_row==57) {
@@ -791,7 +782,6 @@ int DrawGLScene(void) // draw scene
 				case 7:
 					if (mod_row==0)
 					{
-						tekk_zoom_flag=false;
 						tekk_flag=false;
 						cube_flag=true;
 						circuit_flag=true;
@@ -920,14 +910,6 @@ int DrawGLScene(void) // draw scene
 	glEnable(GL_FOG);
 	glEnable(GL_DEPTH_TEST);
 
-	sf += sfi*0.1;
-	if (sf > cur_geom->max_sf ||
-		sf < cur_geom->min_sf)
-	{
-		sfi = -sfi;
-	}
-	UpdatePts(cur_geom, sf);
-	DrawGeom(cur_geom);
 	// draw cube
 	if (cube_flag)
 	{
@@ -956,29 +938,27 @@ int DrawGLScene(void) // draw scene
 		}
 		float a_x=60.0f+10.0f*angle;
 		float a_y=-60.0f+(cube_angle-main_angle)*8.0f+speed_value*180.0f;
-		//glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-		//for (int i=0; i<k; i++)
-		//{
-		//	glLoadIdentity();
-		//	glTranslatef(p_x, p_y, p_z);
-		//	glRotatef(a_x, 1.0f, 0, 0);
-		//	glRotatef(a_y, 0, 1.0f, 0);
-		//	glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
-		//	glColorPointer(3, GL_FLOAT, 0, cube_white_col);
-		//	glDrawArrays(GL_QUADS, 0, 20);
-		//}
-		//draw sun
-		glVertexPointer(3, GL_FLOAT, 0, sun_vtx);
-		glPushMatrix();
-		glTranslatef(4, 16, 0);
-		glColorPointer(3, GL_FLOAT, 0, cube_white_col);
-		glDrawArrays(GL_QUADS, 0, 20);
-		for (int i=0; i<72; i+=2)
+		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
+		for (int i=0; i<k; i++)
 		{
-			sun_vtx[i]=cube_vtx[i]*cosf(angle);
-			sun_vtx[i+1]=cube_vtx[i+1]*sinf(angle);
+			glPushMatrix();
+			glTranslatef(p_x, p_y, p_z);
+			glRotatef(a_x, 1.0f, 0, 0);
+			glRotatef(a_y, 0, 1.0f, 0);
+			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
+			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
+			glDrawArrays(GL_QUADS, 0, 20);
+			glPopMatrix();
 		}
-		glPopMatrix();
+
+		sf += sfi * timer_delta * 50;
+		if (sf > cur_geom->max_sf ||
+			sf < cur_geom->min_sf)
+		{
+			sfi = -sfi;
+		}
+		UpdatePts(cur_geom, sf);
+		DrawGeom(cur_geom, timer_global);
 
 		if (circuit_flag)
 		{
@@ -1071,27 +1051,14 @@ int DrawGLScene(void) // draw scene
 	// draw tekk
 	if (tekk_flag)
 	{
-		if (tekk_zoom_flag)
-		{
-			angle=(main_angle-tekk_zoom_angle)*0.15f;
-			tekk_zoom_value=1.0f-cosf(angle);
-			if (angle>90.0f*PID)
-			{
-				tekk_zoom_value=0;
-			}
-			fog_color[0]=0.25f+tekk_zoom_value*0.25f;
-			fog_color[1]=0.2f-tekk_zoom_value*0.125f;
-			fog_color[2]=0.0f+tekk_zoom_value*0.125f;
-			glFogfv(GL_FOG_COLOR, fog_color);
-		}
 		float y=0;
 		int k=0;
 		float z1, z2=0;
-		float a1=main_angle*0.5f+tekk_zoom_value*4.0f;
+		float a1 = main_angle * 0.5f;
 		for (int i=0; i<tekk_bar; i++)
 		{
 			angle=tekk_radius*cosf(1080.0f*PID/tekk_bar*i+cosf(i*1.5f)+a1);
-			float a2=main_angle*2.0f+tekk_zoom_value*24.0f;
+			float a2 = main_angle * 2.0f;
 			for (int j=0; j<tekk_n; j++)
 			{
 				float angle2=1080.0f*PID/tekk_n*j+a2;

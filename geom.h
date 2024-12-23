@@ -88,9 +88,7 @@ extern GEOMETRY* geom_table[];
 
 void InitVlen(GEOMETRY* geom, int npts, PT3* pts);
 void UpdatePts(GEOMETRY* geom, FLT sf);
-void DrawGeom(GEOMETRY* geom);
-
-extern void DrawWithVArrays(GEOMETRY* geom);
+void DrawGeom(GEOMETRY* geom, FLT timer);
 
 #define V3Sub(a, b, r) \
     ((r)->x = (a)->x-(b)->x, (r)->y = (a)->y-(b)->y, (r)->z = (a)->z-(b)->z)

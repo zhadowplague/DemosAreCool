@@ -18,7 +18,7 @@
 // Sphere radius
 #define RADIUS 1
 
-#define SUBDIVS 2
+#define SUBDIVS 6
 
 FLT V3Len(PT3* v)
 {
@@ -123,46 +123,6 @@ void MapToSide(PLANE_MAP* map, FLT x, FLT y, PT3* pt)
 	pt->z = x * map->x_axis.z + y * map->y_axis.z + map->base.z;
 }
 
-void DrawWithVArrays(GEOMETRY* geom)
-{
-	int side, ss, idc, k;
-	unsigned int* idx;
-
-	for (side = 0; side < geom->nsides; side++) {
-		geom->sides[side].dBuf = (int*)LocalAlloc(LMEM_FIXED,
-			sizeof(int) *
-			3 * MAXPTS * 2);
-		k = 0;
-		idx = geom->sides[side].strip_index;
-		for (ss = 0; ss < geom->sides[side].nstrips; ss++) {
-			if (geom->sides[side].strip_size[ss] < 3) continue;
-			for (idc = 2; idc < geom->sides[side].strip_size[ss]; idc++) {
-				if (!(idc % 2)) { //even
-					geom->sides[side].dBuf[k++] = *(idx + idc - 2);
-					geom->sides[side].dBuf[k++] = *(idx + idc - 1);
-				}
-				else {
-					geom->sides[side].dBuf[k++] = *(idx + idc - 1);
-					geom->sides[side].dBuf[k++] = *(idx + idc - 2);
-				}
-				geom->sides[side].dBuf[k++] = *(idx + idc);
-			}
-			idx += geom->sides[side].strip_size[ss];
-		}
-		geom->sides[side].num_eles = k;
-	}
-	glNormalPointer(GL_FLOAT, sizeof(PT3),
-		(GLfloat*)&(geom->normals[0].x));
-	glVertexPointer(3, GL_FLOAT, sizeof(PT3),
-		(GLfloat*)&(geom->npts[0].x));
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_INDEX_ARRAY);
-	glDisableClientState(GL_EDGE_FLAG_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-}
 /******************************Public*Routine******************************\
 *
 * InitCube
@@ -651,31 +611,31 @@ void InitSpring(GEOMETRY* geom)
 *
 \**************************************************************************/
 
-void DrawGeom(GEOMETRY* geom)
+void DrawGeom(GEOMETRY* geom, float timer)
 {
 	int side, strip, k;
 	int* idx, idc, idxv;
 	glColor3f(1, 1, 1);
-	glDisable(GL_BLEND);
+	//glDisable(GL_BLEND);
 	glDisable(GL_FOG);
 	glDisable(GL_DEPTH_TEST);
+	glPushMatrix();
+	glTranslatef(4, 16, 0);
+	glRotatef(timer, 1, 0, 0);
+	glScalef(4, 4, 4);
 	for (side = 0; side < geom->nsides; side++) {
-
 		idx = (int*)geom->sides[side].strip_index;
 		for (strip = 0; strip < geom->sides[side].nstrips; strip++) {
 			glBegin(GL_TRIANGLE_STRIP);
-
-			for (idc = 0; idc < geom->sides[side].strip_size[strip];
-				idc++) {
+			for (idc = 0; idc < geom->sides[side].strip_size[strip]; idc++) {
 				idxv = *idx++;
-
 				glNormal3fv((GLfloat*)&geom->normals[idxv]);
 				glVertex3fv((GLfloat*)&geom->npts[idxv]);
 			}
-
 			glEnd();
 		}
 	}
+	glPopMatrix();
 
 }
 
@@ -729,10 +689,6 @@ void ComputeAveragedNormals(GEOMETRY* geom)
 					n1.z = -n1.z;
 			}
 
-#if 0
-				dprintf(("Normal is %f,%f,%f\n", n1.x, n1.y, n1.z));
-#endif
-
 				V3Add(&geom->normals[idx1], &n1, &geom->normals[idx1]);
 				V3Add(&geom->normals[idx2], &n1, &geom->normals[idx2]);
 				V3Add(&geom->normals[idx3], &n1, &geom->normals[idx3]);
@@ -772,10 +728,6 @@ void UpdatePts(GEOMETRY* geom, FLT sf)
 		v->x = p->x * f;
 		v->y = p->y * f;
 		v->z = p->z * f;
-#if 0
-		dprintf(("%f: %f,%f,%f to %f,%f,%f by %f\n", sf,
-			p->x, p->y, p->z, v->x, v->y, v->z, f));
-#endif
 		p++;
 		v++;
 	}
