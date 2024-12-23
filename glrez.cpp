@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "timer.h"
 #include "minifmod.h"
+#include "geom.h"
 
 #define PI 3.14159265358979323846f // pi
 #define PID PI/180.0f			// pi ratio
@@ -446,8 +447,21 @@ void cube()
 	}
 }
 
+GEOMETRY* cur_geom;
+float sf;
+float sfi;
+
 int InitGL(void)
 {
+	// Reset geometry
+	cur_geom = geom_table[0];
+	cur_geom->init(cur_geom);
+	DrawWithVArrays(cur_geom);
+	InitVlen(cur_geom, cur_geom->total_pts, cur_geom->pts);
+	sf = 0.0f;
+	sfi = cur_geom->sf_inc;
+	UpdatePts(cur_geom, sf);
+
 	glClearDepth(1.0f);								// set depth buffer
 	glDepthMask(GL_TRUE);							// do not write z-buffer
 	glEnable(GL_CULL_FACE);						// disable cull face
@@ -707,7 +721,6 @@ int DrawGLScene(void) // draw scene
 						is_looping=loop_counter>0;
 						intro_flag=true;
 						stars_flag=true;
-						glenz_flag=true;
 						cube_flag=false;
 						lake_flag=false;
 						circuit_flag=false;
@@ -906,6 +919,15 @@ int DrawGLScene(void) // draw scene
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_FOG);
 	glEnable(GL_DEPTH_TEST);
+
+	sf += sfi*0.1;
+	if (sf > cur_geom->max_sf ||
+		sf < cur_geom->min_sf)
+	{
+		sfi = -sfi;
+	}
+	UpdatePts(cur_geom, sf);
+	DrawGeom(cur_geom);
 	// draw cube
 	if (cube_flag)
 	{
