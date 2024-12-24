@@ -212,16 +212,16 @@ int lake_n2=48;					// number y
 const float lake_w=0.5f;			// space between dot
 //Shapes
 float quad_vtx[]={ -0.325f,-0.325f,0.325f,-0.325f,0.325f,0.325f,-0.325f,0.325f };
-/* tekk variable				*/
-bool tekk_flag=false;		// flag
-const int tekk_bar=24;				// bar number
-const int tekk_n=64;					// polygon per bar
-const float tekk_v=16.0f;					// verts per quad
-const float tekk_w=0.5f;			// space between bar
-const float tekk_size=0.125f;	// bar size
-const float tekk_radius=1.5f;	// radius
-float tekk_vtx[147456];	// vertex array
-float tekk_col[147456];	// color array
+/* horizon variable				*/
+bool horizon_flag=false;		// flag
+const int horizon_bar=24;				// bar number
+const int horizon_n=64;					// polygon per bar
+const float horizon_v=16.0f;					// verts per quad
+const float horizon_w=0.5f;			// space between bar
+const float horizon_size=0.125f;	// bar size
+const float horizon_radius=1.5f;	// radius
+float horizon_vtx[147456];	// vertex array
+float horizon_col[147456];	// color array
 /* hidden variable			*/
 bool hidden_flag=false;	// flag
 /* fade in variable				*/
@@ -493,104 +493,104 @@ int InitGL(void)
 	float y=0;
 	int k=0;
 	float x1, x2, y1, y2;
-	y1=y-tekk_size;
-	y2=y+tekk_size;
-	for (int i=0; i<tekk_bar; i++)
+	y1=y-horizon_size;
+	y2=y+horizon_size;
+	for (int i=0; i<horizon_bar; i++)
 	{
-		x1=-tekk_w;
+		x1=-horizon_w;
 		x2=0;
-		for (int j=0; j<tekk_n; j++)
+		for (int j=0; j<horizon_n; j++)
 		{
-			x1+=tekk_w;
-			x2+=tekk_w;
-			float angle2=1080.0f*PID/tekk_n*j+main_angle*2.0f;
-			tekk_vtx[k]=x1;
-			tekk_vtx[k+1]=y2;
-			tekk_vtx[k+3]=x1;
-			tekk_vtx[k+4]=y1;
-			tekk_vtx[k+6]=x2;
-			tekk_vtx[k+7]=y1;
-			tekk_vtx[k+9]=x2;
-			tekk_vtx[k+10]=y2;
-			tekk_vtx[k+12]=x1;
-			tekk_vtx[k+13]=y1;
-			tekk_vtx[k+15]=x1;
-			tekk_vtx[k+16]=y2;
-			tekk_vtx[k+18]=x2;
-			tekk_vtx[k+19]=y2;
-			tekk_vtx[k+21]=x2;
-			tekk_vtx[k+22]=y1;
-			tekk_vtx[k+24]=x1;
-			tekk_vtx[k+25]=y1;
-			tekk_vtx[k+27]=x1;
-			tekk_vtx[k+28]=y1;
-			tekk_vtx[k+29]=0;
-			tekk_vtx[k+30]=x2;
-			tekk_vtx[k+31]=y1;
-			tekk_vtx[k+32]=0;
-			tekk_vtx[k+33]=x2;
-			tekk_vtx[k+34]=y1;
-			tekk_vtx[k+36]=x1;
-			tekk_vtx[k+37]=y2;
-			tekk_vtx[k+38]=0;
-			tekk_vtx[k+39]=x1;
-			tekk_vtx[k+40]=y2;
-			tekk_vtx[k+42]=x2;
-			tekk_vtx[k+43]=y2;
-			tekk_vtx[k+45]=x2;
-			tekk_vtx[k+46]=y2;
-			tekk_vtx[k+47]=0;
+			x1+=horizon_w;
+			x2+=horizon_w;
+			float angle2=1080.0f*PID/horizon_n*j+main_angle*2.0f;
+			horizon_vtx[k]=x1;
+			horizon_vtx[k+1]=y2;
+			horizon_vtx[k+3]=x1;
+			horizon_vtx[k+4]=y1;
+			horizon_vtx[k+6]=x2;
+			horizon_vtx[k+7]=y1;
+			horizon_vtx[k+9]=x2;
+			horizon_vtx[k+10]=y2;
+			horizon_vtx[k+12]=x1;
+			horizon_vtx[k+13]=y1;
+			horizon_vtx[k+15]=x1;
+			horizon_vtx[k+16]=y2;
+			horizon_vtx[k+18]=x2;
+			horizon_vtx[k+19]=y2;
+			horizon_vtx[k+21]=x2;
+			horizon_vtx[k+22]=y1;
+			horizon_vtx[k+24]=x1;
+			horizon_vtx[k+25]=y1;
+			horizon_vtx[k+27]=x1;
+			horizon_vtx[k+28]=y1;
+			horizon_vtx[k+29]=0;
+			horizon_vtx[k+30]=x2;
+			horizon_vtx[k+31]=y1;
+			horizon_vtx[k+32]=0;
+			horizon_vtx[k+33]=x2;
+			horizon_vtx[k+34]=y1;
+			horizon_vtx[k+36]=x1;
+			horizon_vtx[k+37]=y2;
+			horizon_vtx[k+38]=0;
+			horizon_vtx[k+39]=x1;
+			horizon_vtx[k+40]=y2;
+			horizon_vtx[k+42]=x2;
+			horizon_vtx[k+43]=y2;
+			horizon_vtx[k+45]=x2;
+			horizon_vtx[k+46]=y2;
+			horizon_vtx[k+47]=0;
 			float r=0.25f+0.25f*cosf(angle2);
 			float g=0.25f;
 			float b=0.25f+0.25f*sinf(angle2);
-			tekk_col[k]=0.45f;
-			tekk_col[k+1]=0.5f;
-			tekk_col[k+2]=0.55f;
-			tekk_col[k+3]=0.45f;
-			tekk_col[k+4]=0.5f;
-			tekk_col[k+5]=0.55f;
-			tekk_col[k+6]=0.45f;
-			tekk_col[k+7]=0.5f;
-			tekk_col[k+8]=0.55f;
-			tekk_col[k+9]=0.45f;
-			tekk_col[k+10]=0.5f;
-			tekk_col[k+11]=0.55f;
-			tekk_col[k+12]=0.875f;
-			tekk_col[k+13]=0;
-			tekk_col[k+14]=0;
-			tekk_col[k+15]=0.875f;
-			tekk_col[k+16]=0;
-			tekk_col[k+17]=0;
-			tekk_col[k+18]=0.875f;
-			tekk_col[k+19]=0;
-			tekk_col[k+20]=0;
-			tekk_col[k+21]=0.875f;
-			tekk_col[k+22]=0;
-			tekk_col[k+23]=0;
-			tekk_col[k+24]=r;
-			tekk_col[k+25]=g;
-			tekk_col[k+26]=b;
-			tekk_col[k+27]=r;
-			tekk_col[k+28]=g;
-			tekk_col[k+29]=b;
-			tekk_col[k+30]=r;
-			tekk_col[k+31]=g;
-			tekk_col[k+32]=b;
-			tekk_col[k+33]=r;
-			tekk_col[k+34]=g;
-			tekk_col[k+35]=b;
-			tekk_col[k+36]=r;
-			tekk_col[k+37]=g;
-			tekk_col[k+38]=b;
-			tekk_col[k+39]=r;
-			tekk_col[k+40]=g;
-			tekk_col[k+41]=b;
-			tekk_col[k+42]=r;
-			tekk_col[k+43]=g;
-			tekk_col[k+44]=b;
-			tekk_col[k+45]=r;
-			tekk_col[k+46]=g;
-			tekk_col[k+47]=b;
+			horizon_col[k]=0.45f;
+			horizon_col[k+1]=0.5f;
+			horizon_col[k+2]=0.55f;
+			horizon_col[k+3]=0.45f;
+			horizon_col[k+4]=0.5f;
+			horizon_col[k+5]=0.55f;
+			horizon_col[k+6]=0.45f;
+			horizon_col[k+7]=0.5f;
+			horizon_col[k+8]=0.55f;
+			horizon_col[k+9]=0.45f;
+			horizon_col[k+10]=0.5f;
+			horizon_col[k+11]=0.55f;
+			horizon_col[k+12]=0.875f;
+			horizon_col[k+13]=0;
+			horizon_col[k+14]=0;
+			horizon_col[k+15]=0.875f;
+			horizon_col[k+16]=0;
+			horizon_col[k+17]=0;
+			horizon_col[k+18]=0.875f;
+			horizon_col[k+19]=0;
+			horizon_col[k+20]=0;
+			horizon_col[k+21]=0.875f;
+			horizon_col[k+22]=0;
+			horizon_col[k+23]=0;
+			horizon_col[k+24]=r;
+			horizon_col[k+25]=g;
+			horizon_col[k+26]=b;
+			horizon_col[k+27]=r;
+			horizon_col[k+28]=g;
+			horizon_col[k+29]=b;
+			horizon_col[k+30]=r;
+			horizon_col[k+31]=g;
+			horizon_col[k+32]=b;
+			horizon_col[k+33]=r;
+			horizon_col[k+34]=g;
+			horizon_col[k+35]=b;
+			horizon_col[k+36]=r;
+			horizon_col[k+37]=g;
+			horizon_col[k+38]=b;
+			horizon_col[k+39]=r;
+			horizon_col[k+40]=g;
+			horizon_col[k+41]=b;
+			horizon_col[k+42]=r;
+			horizon_col[k+43]=g;
+			horizon_col[k+44]=b;
+			horizon_col[k+45]=r;
+			horizon_col[k+46]=g;
+			horizon_col[k+47]=b;
 			k+=48;
 		}
 	}
@@ -732,7 +732,7 @@ int DrawGLScene(void) // draw scene
 				case 4:
 					if (mod_row==0)
 					{
-						tekk_flag=true;
+						horizon_flag=true;
 						fade_in=false;
 						stars_flag=false;
 						lake_flag=true;
@@ -776,7 +776,7 @@ int DrawGLScene(void) // draw scene
 				case 7:
 					if (mod_row==0)
 					{
-						tekk_flag=false;
+						horizon_flag=false;
 						cube_flag=true;
 						circuit_flag=true;
 						speed_flag=false;
@@ -1047,52 +1047,52 @@ int DrawGLScene(void) // draw scene
 			}
 		}
 	}
-	// draw tekk
-	if (tekk_flag)
+	// draw horizon
+	if (horizon_flag)
 	{
 		float y=0;
 		int k=0;
 		float z1, z2=0;
 		float a1 = main_angle * 0.5f;
-		for (int i=0; i<tekk_bar; i++)
+		for (int i=0; i<horizon_bar; i++)
 		{
-			angle=tekk_radius*cosf(1080.0f*PID/tekk_bar*i+cosf(i*1.5f)+a1);
+			angle=horizon_radius*cosf(1080.0f*PID/horizon_bar*i+cosf(i*1.5f)+a1);
 			float a2 = main_angle * 2.0f;
-			for (int j=0; j<tekk_n; j++)
+			for (int j=0; j<horizon_n; j++)
 			{
-				float angle2=1080.0f*PID/tekk_n*j+a2;
-				float z=sync2_value*2.0f*(rand()%100)/200.0f*cosf((main_angle-sync2_angle)*tekk_v);
+				float angle2=1080.0f*PID/horizon_n*j+a2;
+				float z=sync2_value*2.0f*(rand()%100)/200.0f*cosf((main_angle-sync2_angle)*horizon_v);
 				z1=z2;
-				z2=(float)fabs(angle+tekk_radius*sinf(angle2))+z;
+				z2=(float)fabs(angle+horizon_radius*sinf(angle2))+z;
 				if (z2<0.5f) z2=0.5f;
-				tekk_vtx[k+2]=z1;
-				tekk_vtx[k+5]=z1;
-				tekk_vtx[k+8]=z2;
-				tekk_vtx[k+11]=z2;
-				tekk_vtx[k+14]=z1;
-				tekk_vtx[k+17]=z1;
-				tekk_vtx[k+20]=z2;
-				tekk_vtx[k+23]=z2;
-				tekk_vtx[k+26]=z1;
-				tekk_vtx[k+35]=z2;
-				tekk_vtx[k+41]=z1;
-				tekk_vtx[k+44]=z2;
+				horizon_vtx[k+2]=z1;
+				horizon_vtx[k+5]=z1;
+				horizon_vtx[k+8]=z2;
+				horizon_vtx[k+11]=z2;
+				horizon_vtx[k+14]=z1;
+				horizon_vtx[k+17]=z1;
+				horizon_vtx[k+20]=z2;
+				horizon_vtx[k+23]=z2;
+				horizon_vtx[k+26]=z1;
+				horizon_vtx[k+35]=z2;
+				horizon_vtx[k+41]=z1;
+				horizon_vtx[k+44]=z2;
 				k+=48;
 			}
 		}
 		glEnableClientState(GL_COLOR_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, tekk_vtx);
-		glColorPointer(3, GL_FLOAT, 0, tekk_col);
+		glVertexPointer(3, GL_FLOAT, 0, horizon_vtx);
+		glColorPointer(3, GL_FLOAT, 0, horizon_col);
 		glBlendFunc(GL_SRC_COLOR, GL_DST_ALPHA);
-		for (int i=0; i<tekk_bar; i++)
+		for (int i=0; i<horizon_bar; i++)
 		{
 			glPushMatrix();
 			glRotatef(90, 0, 1, 0);
 			glRotatef(270, 0, 0, 1);
 			glTranslatef(-16, 0, 0);
-			glRotatef(360*(float)i/(float)tekk_bar, 0, 0, 1);
+			glRotatef(360*(float)i/(float)horizon_bar, 0, 0, 1);
 			glTranslatef(0, 32, 0);
-			glDrawArrays(GL_QUADS, tekk_n*i*tekk_v, tekk_n*tekk_v);
+			glDrawArrays(GL_QUADS, horizon_n*i*horizon_v, horizon_n*horizon_v);
 			glPopMatrix();
 		}
 		glDisableClientState(GL_COLOR_ARRAY);
@@ -1453,7 +1453,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				speed_flag=false;
 				stars_flag=true;
 				lake_flag=false;
-				tekk_flag=false;
+				horizon_flag=false;
 				glenz_flag=false;
 				hidden_flag=true;
 				dos_flag=false;
