@@ -200,21 +200,21 @@ int intro_i=1;					// counter
 float intro_angle=0;		// angle
 /* tunnel variable			*/
 bool stars_flag=false;	// flag
-const int stars_z_dist=64;				// depth number
-const int star_n=2560;		// total star number
+const int stars_z_dist=32;				// depth number
+const int star_n=1280;		// total star number
 float star_x[star_n];			// position x
 float star_y[star_n];			// position y
 float star_z[star_n];			// position z
-float star_vtx[]={ -0.0375f,-0.0375f,0.0375f,-0.0375f,0.0375f,0.0375f,-0.0375f,0.0375f };
-/* vote variable				*/
+/* lake variable				*/
 bool lake_flag=false;		// flag
-int vote_n1=48;					// number x
-int vote_n2=48;					// number y
-float vote_w=0.5f;			// space between dot
-float vote_vtx[]={ -0.325f,-0.325f,0.325f,-0.325f,0.325f,0.325f,-0.325f,0.325f };
+int lake_n1=48;					// number x
+int lake_n2=48;					// number y
+const float lake_w=0.5f;			// space between dot
+//Shapes
+float quad_vtx[]={ -0.325f,-0.325f,0.325f,-0.325f,0.325f,0.325f,-0.325f,0.325f };
 /* tekk variable				*/
 bool tekk_flag=false;		// flag
-const int tekk_bar=48;				// bar number
+const int tekk_bar=24;				// bar number
 const int tekk_n=64;					// polygon per bar
 const float tekk_v=16.0f;					// verts per quad
 const float tekk_w=0.5f;			// space between bar
@@ -224,15 +224,13 @@ float tekk_vtx[147456];	// vertex array
 float tekk_col[147456];	// color array
 /* hidden variable			*/
 bool hidden_flag=false;	// flag
-/* flash variable				*/
+/* fade in variable				*/
 bool fade_in=true;	// flag
 float fade_value=0;		// angle
 /* dos variable					*/
 bool dos_flag=true;// flag
 bool skip_dos=false;
 float dos_time=6.0f;
-/* flash variable		*/
-int scanline_vtx[8];		// vertex array
 /* synchro variable			*/
 bool synchro_flag=false;// flag
 float synchro_angle=0;	// angle
@@ -434,14 +432,6 @@ void rectangle(int x, int y, int w, int h)
 	glEnd();
 }
 
-void cube()
-{
-	for (int i=0; i<72; i++)
-	{
-		cube_white_col[i]=1;
-	}
-}
-
 GEOMETRY* cur_geom;
 float sf;
 float sfi;
@@ -455,7 +445,6 @@ int InitGL(void)
 	sf = 0.0f;
 	sfi = cur_geom->sf_inc;
 	UpdatePts(cur_geom, sf);
-
 	glClearDepth(1.0f);								// set depth buffer
 	glDepthMask(GL_TRUE);							// do not write z-buffer
 	glEnable(GL_CULL_FACE);						// disable cull face
@@ -485,7 +474,12 @@ int InitGL(void)
 	// initialize some variable
 	timer=new Timer();
 	glenz();
-	cube();
+	//cube
+	for (int i = 0; i < 72; i++)
+	{
+		cube_white_col[i] = 1;
+	}
+	//stars
 	for (int i=0; i<star_n; i++)
 	{
 		float angle=(rand()%3600)*0.1f;
@@ -910,7 +904,7 @@ int DrawGLScene(void) // draw scene
 	glEnable(GL_FOG);
 	glEnable(GL_DEPTH_TEST);
 
-	// draw cube
+	// draw ground
 	if (cube_flag)
 	{
 		glEnableClientState(GL_COLOR_ARRAY);
@@ -951,6 +945,7 @@ int DrawGLScene(void) // draw scene
 			glPopMatrix();
 		}
 
+		//draw sun
 		sf += sfi * timer_delta * 50;
 		if (sf > cur_geom->max_sf ||
 			sf < cur_geom->min_sf)
@@ -1005,7 +1000,7 @@ int DrawGLScene(void) // draw scene
 	if (stars_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
-		glVertexPointer(2, GL_FLOAT, 0, star_vtx);
+		glVertexPointer(2, GL_FLOAT, 0, quad_vtx);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		int stars_to_render=min(star_n, star_n*((float)intro_i/(float)intro_n));
 		for (int i=0; i<stars_to_render; i++)
@@ -1014,6 +1009,7 @@ int DrawGLScene(void) // draw scene
 			glTranslatef(star_x[i], star_y[i], star_z[i]);
 			MakeBillboard();
 			glRotatef(0, 0, 0, 1.0f);
+			glScalef(0.1f, 0.1f, 0.1f);
 			glDrawArrays(GL_QUADS, 0, 4);
 			glPopMatrix();
 		}
@@ -1025,23 +1021,26 @@ int DrawGLScene(void) // draw scene
 		float w=0.325f;
 		float h=0.325f;
 		angle=sync2_value*cosf((main_angle-sync2_angle)*1.25f);
-		float p_x=-vote_n1*vote_w*0.25f;
-		float z=-vote_n2*vote_w*0.5f;
+		float p_x=-lake_n1*lake_w*0.25f;
+		float z=-lake_n2*lake_w*0.5f;
 		radius=1.0f;
-		glVertexPointer(2, GL_FLOAT, 0, vote_vtx);
-		for (int i=0; i<vote_n1; i++)
+		glVertexPointer(2, GL_FLOAT, 0, quad_vtx);
+		for (int i=0; i<lake_n1; i++)
 		{
-			float x=p_x+i*vote_w;
-			angle=720.0f*PID/vote_n1*i+cosf(i*0.375f)+main_angle*1.625f;
-			for (int j=0; j<vote_n2; j++)
+			float x=p_x+i*lake_w;
+			angle=720.0f*PID/lake_n1*i+cosf(i*0.375f)+main_angle*1.625f;
+			for (int j=0; j<lake_n2; j++)
 			{
-				float y=-0.5f-radius*1.5f*cosf(main_angle*0.25f)+sinf((i+j)*0.25f)+radius*cosf(angle)+radius*sinf(720.0f*1.5f*PID/vote_n2*j+main_angle);
+				float y=-0.5f-radius*1.5f*cosf(main_angle*0.25f)+sinf((i+j)*0.25f)+radius*cosf(angle)+radius*sinf(720.0f*1.5f*PID/lake_n2*j+main_angle);
 				glColor3f(0.5f+0.5f*cosf(90.0f*PID*y), 1.0f, 0.5f+0.5f*sinf(90.0f*PID*y));
-				if (y<-2.0f&&y>-2.5f) glColor3f(0.625f, 1.0f, 0.75f);
-				if (y<-1.0f) y=-y-1.35f;
-				if (y<-0.625f) y=-0.5f;
+				if (y<-2.0f&&y>-2.5f) 
+					glColor3f(0.625f, 1.0f, 0.75f);
+				if (y<-1.0f) 
+					y=-y-1.35f;
+				if (y<-0.625f) 
+					y=-0.5f;
 				glPushMatrix();
-				glTranslatef(y-4, p_x+x+20, z+j*vote_w);
+				glTranslatef(y-4, p_x+x+20, z+j*lake_w);
 				MakeBillboard();
 				glDrawArrays(GL_QUADS, 0, 4);
 				glPopMatrix();
@@ -1089,11 +1088,10 @@ int DrawGLScene(void) // draw scene
 		{
 			glPushMatrix();
 			glRotatef(90, 0, 1, 0);
-			glRotatef(180, 0, 0, 1);
-			glRotatef(90, 0, 0, 1);
+			glRotatef(270, 0, 0, 1);
 			glTranslatef(-16, 0, 0);
 			glRotatef(360*(float)i/(float)tekk_bar, 0, 0, 1);
-			glTranslatef(0, 24, 0);
+			glTranslatef(0, 32, 0);
 			glDrawArrays(GL_QUADS, tekk_n*i*tekk_v, tekk_n*tekk_v);
 			glPopMatrix();
 		}
@@ -1178,14 +1176,6 @@ int DrawGLScene(void) // draw scene
 		glPopAttrib();
 	}
 
-	if (speed_flag)
-	{
-		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-		glColor3f(speed_value, speed_value, speed_value);
-		glLoadIdentity();
-		glVertexPointer(2, GL_INT, 0, scanline_vtx);
-		glDrawArrays(GL_QUADS, 0, 4);
-	}
 	// draw loop
 	if (is_looping)
 	{
