@@ -65,9 +65,6 @@ GEOMETRY* geom_table[] =
 	&spring_geom
 };
 
-extern BOOL bOgl11;
-extern BOOL bCheckerOn;
-
 /******************************Public*Routine******************************\
 *
 * InitVlen
@@ -301,10 +298,6 @@ void InitTetra(GEOMETRY* geom)
 	pt = geom->pts;
 	for (side = 0; side < geom->nsides; side++)
 	{
-#if 0
-		dprintf(("Side %d\n", side));
-#endif
-
 		for (x = 0; x < SUBDIVS + 1; x++)
 		{
 			fx = (FLT)x / SUBDIVS;
@@ -399,10 +392,6 @@ void InitPyramids(GEOMETRY* geom)
 	pt = geom->pts;
 	for (side = 0; side < geom->nsides; side++)
 	{
-#if 0
-		dprintf(("Side %d\n", side));
-#endif
-
 		for (x = 0; x < SUBDIVS + 1; x++)
 		{
 			fx = (FLT)x / SUBDIVS;
@@ -611,17 +600,10 @@ void InitSpring(GEOMETRY* geom)
 *
 \**************************************************************************/
 
-void DrawGeom(GEOMETRY* geom, float timer)
+void DrawGeom(GEOMETRY* geom)
 {
 	int side, strip;
 	int* idx, idc, idxv;
-	glColor3f(1, 0.75f, 0.75f);
-	glDisable(GL_FOG);
-	glDisable(GL_DEPTH_TEST);
-	glPushMatrix();
-	glTranslatef(4, 16, 0);
-	glRotatef(timer, 1, 1, 0);
-	glScalef(4, 4, 4);
 	for (side = 0; side < geom->nsides; side++) {
 		idx = (int*)geom->sides[side].strip_index;
 		for (strip = 0; strip < geom->sides[side].nstrips; strip++) {
@@ -634,7 +616,6 @@ void DrawGeom(GEOMETRY* geom, float timer)
 			glEnd();
 		}
 	}
-	glPopMatrix();
 }
 
 /******************************Public*Routine******************************\
@@ -730,6 +711,6 @@ void UpdatePts(GEOMETRY* geom, FLT sf)
 		v++;
 	}
 
-	//ComputeAveragedNormals(geom);
+	ComputeAveragedNormals(geom);
 }
 

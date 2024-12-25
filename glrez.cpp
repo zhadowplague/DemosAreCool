@@ -79,7 +79,7 @@ char* txt_dos2="F12: credits";
 char* txt_dos3="SPACE: fullscreen/windowed";
 char* txt_loop="Looping";
 
-char* txt_hidden1[]={ "- Credits 1 -", "code: rez", "code: bin", nullptr };
+char* txt_hidden1[]={ "- Credits 1 -", "code: rez", "code: bin", "code: drewb", nullptr};
 char* txt_hidden2[]={ "- Credits 2 -", "music: bin", "credits-music: OneyNG", nullptr };
 char* txt_hidden3[]={ "Thanks for inspiration", "rez,keops,4mat,coda,bubsy", nullptr };
 char* txt_hidden4[]={ "bye", nullptr };
@@ -119,9 +119,15 @@ float cube_face_tex[48]={
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //leftside
 };
 float cube_white_col[72];         // cube white vertex colors
-float circuit_vtx[24]={ cube_w,0,cube_w,cube_w,0,-cube_w,0,0,-cube_w,0,0,cube_w,0,0,cube_w,0,0,-cube_w,-cube_w,0,-cube_w,-cube_w,0,cube_w };
+float cube_black_col[72];         // cube white vertex colors
+float cube_rainb_col[72];         // cube rainbow vertex colors
 /* circuit variable			*/
 bool circuit_flag=false;// flag
+/* sun variable */
+bool sun_flag=false;
+GEOMETRY* cur_geom;
+float sf;
+float sfi;
 /* glenz variable */
 bool glenz_flag=true;
 int glenz_frame=0;
@@ -195,7 +201,7 @@ float glenz_scale[glenz_n]=
 };
 /* intro variable				*/
 bool intro_flag=false;	// flag
-const int intro_n=36+12;					// number
+const int intro_n=48;					// number
 int intro_i=1;					// counter
 float intro_angle=0;		// angle
 /* tunnel variable			*/
@@ -248,8 +254,6 @@ bool speed_flag=false;	// flag
 float speed_angle=0;		// angle
 float speed_value=0;		// value
 
-float angle, radius, scale;
-
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// wndProc declaration
 
 static PIXELFORMATDESCRIPTOR pfd=
@@ -280,14 +284,11 @@ typedef struct
 	void* data;
 } MEMFILE;
 
-MEMFILE* memfile;
-HRSRC	rec;
-
 unsigned int memopen(char* name)
 {
 	HGLOBAL	handle;
-	memfile=(MEMFILE*)GlobalAlloc(GMEM_FIXED|GMEM_ZEROINIT, sizeof(MEMFILE));
-	rec=FindResource(NULL, name, RT_RCDATA);
+	auto memfile=(MEMFILE*)GlobalAlloc(GMEM_FIXED|GMEM_ZEROINIT, sizeof(MEMFILE));
+	auto rec=FindResource(NULL, name, RT_RCDATA);
 	handle=LoadResource(NULL, rec);
 	memfile->data=LockResource(handle);
 	memfile->length=SizeofResource(NULL, rec);
@@ -356,20 +357,6 @@ void load_tex(WORD file, GLint clamp, GLint mipmap)
 	DestroyIcon(hIcon);
 }
 
-void init3d(GLsizei width, GLsizei height)
-{
-	glViewport(0, 0, width, height);	// reset viewport
-	glMatrixMode(GL_PROJECTION);	// select projection matrix
-	glLoadIdentity();							// reset projection matrix
-	gluPerspective(fov, (float)((float)width/(float)height), nearplane, farplane); // aspect ratio
-	glMatrixMode(GL_MODELVIEW);		// select modelview matrix
-	glLoadIdentity();							// reset modelview matrix
-	// Set camera position and orientation
-	gluLookAt(camera_current_x, camera_current_y, camera_current_z,                    // Camera position
-		0, 0, 0,           // Look-at point
-		1, 0, 0);                      // Up vector
-}
-
 void synchro()
 {
 	synchro_flag=true;
@@ -432,18 +419,14 @@ void rectangle(int x, int y, int w, int h)
 	glEnd();
 }
 
-GEOMETRY* cur_geom;
-float sf;
-float sfi;
-
 int InitGL(void)
 {
 	// Reset geometry
 	cur_geom = geom_table[2];
 	cur_geom->init(cur_geom);
 	InitVlen(cur_geom, cur_geom->total_pts, cur_geom->pts);
-	sf = 0.0f;
-	sfi = cur_geom->sf_inc;
+	sf=0.0f;
+	sfi=cur_geom->sf_inc;
 	UpdatePts(cur_geom, sf);
 	glClearDepth(1.0f);								// set depth buffer
 	glDepthMask(GL_TRUE);							// do not write z-buffer
@@ -479,11 +462,17 @@ int InitGL(void)
 	{
 		cube_white_col[i] = 1;
 	}
+	for (int i=0; i<72; i+=3)
+	{
+		cube_black_col[i] = 1;
+		cube_black_col[i+1] =1-0.005;
+		cube_black_col[i+2] = 0;
+	}
 	//stars
 	for (int i=0; i<star_n; i++)
 	{
 		float angle=(rand()%3600)*0.1f;
-		radius=((rand()%1000)*0.01f);
+		float radius=((rand()%1000)*0.01f);
 		radius=1.5f*1.125f+((radius<0.0f) ? -radius : radius);
 		star_x[i]=radius*cosf(angle);
 		star_y[i]=radius*sinf(angle);
@@ -710,8 +699,8 @@ int DrawGLScene(void) // draw scene
 						intro_flag=true;
 						stars_flag=true;
 						cube_flag=false;
-						lake_flag=false;
 						circuit_flag=false;
+						lake_flag=false;
 						glenz_frame=2;
 						intro_i=intro_n;
 						camera_smooth=0;
@@ -735,6 +724,7 @@ int DrawGLScene(void) // draw scene
 						horizon_flag=true;
 						fade_in=false;
 						stars_flag=false;
+						sun_flag=true;
 						lake_flag=true;
 						cube_flag=true;
 						cube_angle=main_angle;
@@ -777,8 +767,8 @@ int DrawGLScene(void) // draw scene
 					if (mod_row==0)
 					{
 						horizon_flag=false;
-						cube_flag=true;
-						circuit_flag=true;
+						cube_flag=false;
+						circuit_flag=false;
 						speed_flag=false;
 						lake_flag=false;
 						stars_flag=true;
@@ -864,7 +854,7 @@ int DrawGLScene(void) // draw scene
 	}
 	if (synchro_flag)
 	{
-		angle=(main_angle-synchro_angle)*2.0f;
+		float angle=(main_angle-synchro_angle)*2.0f;
 		synchro_value=1.0f-sinf(angle);
 		if (angle>90.0f*PID)
 		{
@@ -874,7 +864,7 @@ int DrawGLScene(void) // draw scene
 	}
 	if (sync2_flag)
 	{
-		angle=(main_angle-sync2_angle)*sync2_mul;
+		float angle=(main_angle-sync2_angle)*sync2_mul;
 		sync2_value=1.0f-sinf(angle);
 		if (angle>90.0f*PID)
 		{
@@ -884,7 +874,7 @@ int DrawGLScene(void) // draw scene
 	}
 	if (beat_flag)
 	{
-		angle=(main_angle-beat_angle)*1.5f;
+		float angle=(main_angle-beat_angle)*1.5f;
 		beat_value=1.0f-sinf(angle);
 		if (angle>90.0f*PID)
 		{
@@ -894,12 +884,21 @@ int DrawGLScene(void) // draw scene
 	}
 	if (speed_flag)
 	{
-		angle=(main_angle-speed_angle)*0.45f;
+		float angle=(main_angle-speed_angle)*0.45f;
 		speed_value=cosf(angle);
 	}
-	// clear screen and depth buffer
-	init3d(screen_w, screen_h);
-	glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
+
+	// init 3d
+	glViewport(0, 0, screen_w, screen_h);	// reset viewport
+	glMatrixMode(GL_PROJECTION);	// select projection matrix
+	glLoadIdentity();							// reset projection matrix
+	gluPerspective(fov, (float)((float)screen_w/(float)screen_h), nearplane, farplane); // aspect ratio
+	glMatrixMode(GL_MODELVIEW);		// select modelview matrix
+	glLoadIdentity();							// reset modelview matrix
+	// Set camera position and orientation
+	gluLookAt(camera_current_x, camera_current_y, camera_current_z,                    // Camera position
+		0, 0, 0,           // Look-at point
+		1, 0, 0);                      // Up vector	glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_FOG);
 	glEnable(GL_DEPTH_TEST);
@@ -907,13 +906,7 @@ int DrawGLScene(void) // draw scene
 	// draw ground
 	if (cube_flag)
 	{
-		glEnableClientState(GL_COLOR_ARRAY);
-		glDisable(GL_BLEND);
-		angle=cosf((cube_angle-main_angle)*0.125f);
-		radius=cube_size-cube_size*angle;
-		float p_x=0;
-		float p_y=3.0f-2.0f*angle;
-		float p_z=-14.0f+2.0f*angle;
+		float radius=cube_size-cube_size*cosf((cube_angle-main_angle)*0.125f);
 		float h=(float)(cube_size*0.1f+(circuit_flag ? 0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)) : 0));
 		int k=0;
 		for (int i=0; i<cube_n; i++)
@@ -930,22 +923,36 @@ int DrawGLScene(void) // draw scene
 				k++;
 			}
 		}
-		float a_x=60.0f+10.0f*angle;
-		float a_y=-60.0f+(cube_angle-main_angle)*8.0f+speed_value*180.0f;
+		if (circuit_flag)
+		{
+			for (int i=0; i<3; i++)
+			{
+				float c1=0.5f*cosf(cube_a[i]*4.0f);
+				float c2=0.5f*sinf(cube_a[i]*4.0f);
+				float circuit_col[]={ c1,0,c2,c2,c1,0,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,0,c2,c1,c1,0,c2 };
+				for (int j=0; j<24; j++) {
+					cube_rainb_col[j+i*24]=circuit_col[j];
+				}
+			}
+		}
+		glEnableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_BLEND);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
+		glColorPointer(3, GL_FLOAT, 0, circuit_flag?cube_rainb_col:cube_white_col);
 		for (int i=0; i<k; i++)
 		{
 			glPushMatrix();
-			glTranslatef(p_x, p_y, p_z);
-			glRotatef(a_x, 1.0f, 0, 0);
-			glRotatef(a_y, 0, 1.0f, 0);
+			glTranslatef(-3.5, 0, 0);
+			glRotatef(-90, 0, 0, 1);
 			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
-			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 			glDrawArrays(GL_QUADS, 0, 20);
 			glPopMatrix();
 		}
+		glDisableClientState(GL_COLOR_ARRAY);
+	}
 
-		//draw sun
+	if (sun_flag) 
+	{
 		sf += sfi * timer_delta * 50;
 		if (sf > cur_geom->max_sf ||
 			sf < cur_geom->min_sf)
@@ -953,31 +960,16 @@ int DrawGLScene(void) // draw scene
 			sfi = -sfi;
 		}
 		UpdatePts(cur_geom, sf);
-		DrawGeom(cur_geom, timer_global);
 
-		if (circuit_flag)
-		{
-			glVertexPointer(3, GL_FLOAT, 0, circuit_vtx);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_ONE, GL_DST_ALPHA);
-			for (int i=0; i<k; i++)
-			{
-				glPushMatrix();
-				glTranslatef(p_x, p_y, p_z);
-				glRotatef(a_x, 1.0f, 0, 0);
-				glRotatef(a_y, 0, 1.0f, 0);
-				glTranslatef(cube_x[i], cube_y[i]+cube_size*0.75f+0.01f, cube_z[i]);
-				float c1=0.5f+0.5f*cosf(cube_a[i]*4.0f);
-				float c2=0.5f+0.5f*sinf(cube_a[i]*4.0f);
-				float circuit_col[]={ c1,0,c2,c2,c1,0,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,0,c2,c1,c1,0,c2 };
-				glColorPointer(3, GL_FLOAT, 0, circuit_col);
-				glDrawArrays(GL_QUADS, 0, 8);
-				glPopMatrix();
-			}
-			glDisable(GL_BLEND);
-		}
-
-		glDisableClientState(GL_COLOR_ARRAY);
+		glColor3f(1, 0.75f, 0.75f);
+		glDisable(GL_FOG);
+		glDisable(GL_DEPTH_TEST);
+		glPushMatrix();
+		glTranslatef(4, 16, 0);
+		glRotatef(timer_global, 1, 1, 0);
+		glScalef(4, 4, 4);
+		DrawGeom(cur_geom);
+		glPopMatrix();
 	}
 
 	if (intro_flag)
@@ -1020,10 +1012,9 @@ int DrawGLScene(void) // draw scene
 		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
 		float w=0.325f;
 		float h=0.325f;
-		angle=sync2_value*cosf((main_angle-sync2_angle)*1.25f);
+		float angle=sync2_value*cosf((main_angle-sync2_angle)*1.25f);
 		float p_x=-lake_n1*lake_w*0.25f;
 		float z=-lake_n2*lake_w*0.5f;
-		radius=1.0f;
 		glVertexPointer(2, GL_FLOAT, 0, quad_vtx);
 		for (int i=0; i<lake_n1; i++)
 		{
@@ -1031,7 +1022,7 @@ int DrawGLScene(void) // draw scene
 			angle=720.0f*PID/lake_n1*i+cosf(i*0.375f)+main_angle*1.625f;
 			for (int j=0; j<lake_n2; j++)
 			{
-				float y=-0.5f-radius*1.5f*cosf(main_angle*0.25f)+sinf((i+j)*0.25f)+radius*cosf(angle)+radius*sinf(720.0f*1.5f*PID/lake_n2*j+main_angle);
+				float y=-0.5f-1*1.5f*cosf(main_angle*0.25f)+sinf((i+j)*0.25f)+1*cosf(angle)+1*sinf(720.0f*1.5f*PID/lake_n2*j+main_angle);
 				glColor3f(0.5f+0.5f*cosf(90.0f*PID*y), 1.0f, 0.5f+0.5f*sinf(90.0f*PID*y));
 				if (y<-2.0f&&y>-2.5f) 
 					glColor3f(0.625f, 1.0f, 0.75f);
@@ -1056,7 +1047,7 @@ int DrawGLScene(void) // draw scene
 		float a1 = main_angle * 0.5f;
 		for (int i=0; i<horizon_bar; i++)
 		{
-			angle=horizon_radius*cosf(1080.0f*PID/horizon_bar*i+cosf(i*1.5f)+a1);
+			float angle=horizon_radius*cosf(1080.0f*PID/horizon_bar*i+cosf(i*1.5f)+a1);
 			float a2 = main_angle * 2.0f;
 			for (int j=0; j<horizon_n; j++)
 			{
@@ -1124,14 +1115,15 @@ int DrawGLScene(void) // draw scene
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
+			glColorPointer(3, GL_FLOAT, 0, cube_black_col);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glDisableClientState(GL_COLOR_ARRAY);
 			glPopMatrix();
 		}
 		glDisable(GL_DEPTH_TEST);
 	}
-	//init2d(screen_w, screen_h);
+	
+	//init2d
 	glViewport(0, 0, screen_w, screen_h);	// reset viewport
 	glMatrixMode(GL_PROJECTION);	// select projection matrix
 	glLoadIdentity();							// reset projection matrix
@@ -1338,7 +1330,6 @@ int CreateGLWindow(char* title)
 	ShowWindow(hWnd, SW_SHOW);		// show window
 	SetForegroundWindow(hWnd);	// set higher priority
 	SetFocus(hWnd);							// set keyboard focus to window
-	init3d(screen_w, screen_h);	// set up perspective of GL screen
 	if (!InitGL())								// initialize GL window
 	{
 		KillGLWindow();
