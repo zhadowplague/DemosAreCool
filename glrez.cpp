@@ -87,28 +87,50 @@ char** txt=txt_hidden1;
 /* cube variable				*/
 bool cube_flag=false;		// flag
 const int cube_n=16;					// number
-const float cube_size=1.0f;		// size
 float cube_x[256];			// position x
 float cube_y[256];			// position y
 float cube_z[256];			// position z
 float cube_a[256];			// angle
-float cube_w=cube_size*0.5f;// width
-float cube_h=cube_size*2.0f;// height
+float cube_w=0.5f;// width
+float cube_h=2.0f;// height
 float cube_ratio=PID*cube_n;// ratio
 float cube_angle=0;			// angle
 float cube_vtx[72]={
-	// Front face
-	-cube_size/2, -cube_size/2,  cube_size/2,    cube_size/2, -cube_size/2,  cube_size/2,    cube_size/2,  cube_size/2,  cube_size/2,   -cube_size/2,  cube_size/2,  cube_size/2,
-	// Back face
-	-cube_size/2, -cube_size/2, -cube_size/2,   -cube_size/2,  cube_size/2, -cube_size/2,    cube_size/2,  cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2, -cube_size/2,
-	// Left face
-	-cube_size/2, -cube_size/2, -cube_size/2,   -cube_size/2,  cube_size/2, -cube_size/2,   -cube_size/2,  cube_size/2,  cube_size/2,   -cube_size/2, -cube_size/2,  cube_size/2,
-	// Right face
-	cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2,  cube_size/2, -cube_size/2,    cube_size/2,  cube_size/2,  cube_size/2,    cube_size/2, -cube_size/2,  cube_size/2,
-	// Top face
-	-cube_size/2,  cube_size/2,  cube_size/2,    cube_size/2,  cube_size/2,  cube_size/2,    cube_size/2,  cube_size/2, -cube_size/2,   -cube_size/2,  cube_size/2, -cube_size/2,
-	// Bottom face
-	-cube_size/2, -cube_size/2,  cube_size/2,   -cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2, -cube_size/2,    cube_size/2, -cube_size/2,  cube_size/2
+	  // Front face
+    -0.5f, -0.5f,  0.5f,  // Bottom-left
+     0.5f, -0.5f,  0.5f,  // Bottom-right
+     0.5f,  0.5f,  0.5f,  // Top-right
+    -0.5f,  0.5f,  0.5f,  // Top-left
+
+    // Back face
+    -0.5f, -0.5f, -0.5f,  // Bottom-left
+    -0.5f,  0.5f, -0.5f,  // Top-left
+     0.5f,  0.5f, -0.5f,  // Top-right
+     0.5f, -0.5f, -0.5f,  // Bottom-right
+
+    // Left face
+    -0.5f, -0.5f, -0.5f,  // Bottom-left
+    -0.5f, -0.5f,  0.5f,  // Bottom-right
+    -0.5f,  0.5f,  0.5f,  // Top-right
+    -0.5f,  0.5f, -0.5f,  // Top-left
+
+    // Right face
+     0.5f, -0.5f, -0.5f,  // Bottom-left
+     0.5f,  0.5f, -0.5f,  // Top-left
+     0.5f,  0.5f,  0.5f,  // Top-right
+     0.5f, -0.5f,  0.5f,  // Bottom-right
+
+    // Top face
+    -0.5f,  0.5f,  0.5f,  // Bottom-left
+     0.5f,  0.5f,  0.5f,  // Bottom-right
+     0.5f,  0.5f, -0.5f,  // Top-right
+    -0.5f,  0.5f, -0.5f,  // Top-left
+
+    // Bottom face
+    -0.5f, -0.5f,  0.5f,  // Bottom-left
+    -0.5f, -0.5f, -0.5f,  // Bottom-right
+     0.5f, -0.5f, -0.5f,  // Top-right
+     0.5f, -0.5f,  0.5f   // Top-left
 };
 float cube_face_tex[48]={
 	1, 0.4, 1, 1, 0, 1,0, 0.4, //front
@@ -898,7 +920,8 @@ int DrawGLScene(void) // draw scene
 	// Set camera position and orientation
 	gluLookAt(camera_current_x, camera_current_y, camera_current_z,                    // Camera position
 		0, 0, 0,           // Look-at point
-		1, 0, 0);                      // Up vector	glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
+		1, 0, 0);                      // Up vector	
+	glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_FOG);
 	glEnable(GL_DEPTH_TEST);
@@ -906,20 +929,20 @@ int DrawGLScene(void) // draw scene
 	// draw ground
 	if (cube_flag)
 	{
-		float radius=cube_size-cube_size*cosf((cube_angle-main_angle)*0.125f);
-		float h=(float)(cube_size*0.1f+(circuit_flag ? 0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)) : 0));
+		float radius=1-cosf((cube_angle-main_angle)*0.125f);
+		float h=(float)(0.1f+(circuit_flag ? 0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)) : 0));
 		int k=0;
 		for (int i=0; i<cube_n; i++)
 		{
 			float a=i*cube_ratio;
-			float x=-(cube_n-1)*cube_size*0.5f+i*cube_size;
+			float x=-(cube_n-1)*0.5f+i;
 			for (int j=0; j<cube_n; j++)
 			{
 				cube_x[k]=x;
 				float b=j*cube_ratio;
 				cube_a[k]=((cube_angle-main_angle)*0.5f+a+b);
-				cube_y[k]=cube_size+radius*cosf(cube_a[k]);
-				cube_z[k]=-(cube_n-1)*cube_size*0.5f+j*cube_size;
+				cube_y[k]=radius*cosf(cube_a[k]);
+				cube_z[k]=-(cube_n-1)*0.5f+j;
 				k++;
 			}
 		}
@@ -961,7 +984,7 @@ int DrawGLScene(void) // draw scene
 		}
 		UpdatePts(cur_geom, sf);
 
-		glColor3f(1, 0.75f, 0.75f);
+		glColor3f(1, 0.5f, 0.5f);
 		glDisable(GL_FOG);
 		glDisable(GL_DEPTH_TEST);
 		glPushMatrix();
@@ -1094,17 +1117,16 @@ int DrawGLScene(void) // draw scene
 	if (glenz_flag)
 	{
 		glEnable(GL_TEXTURE_2D);
+		glEnableClientState(GL_COLOR_ARRAY);
 		int frame=27*glenz_frame;
 		glEnable(GL_DEPTH_TEST);
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
-		glEnableClientState(GL_COLOR_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
 		glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 		glDrawArrays(GL_QUADS, 0, 24);
-		glDisableClientState(GL_COLOR_ARRAY);
 		glPopMatrix();
 		glDisable(GL_TEXTURE_2D);
 
@@ -1113,13 +1135,12 @@ int DrawGLScene(void) // draw scene
 			glPushMatrix();
 			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]);
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
-			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 			glColorPointer(3, GL_FLOAT, 0, cube_black_col);
 			glDrawArrays(GL_QUADS, 0, 24);
-			glDisableClientState(GL_COLOR_ARRAY);
 			glPopMatrix();
 		}
+		glDisableClientState(GL_COLOR_ARRAY);
 		glDisable(GL_DEPTH_TEST);
 	}
 	
