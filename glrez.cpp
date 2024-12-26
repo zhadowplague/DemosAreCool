@@ -230,13 +230,11 @@ float intro_angle=0;		// angle
 bool stars_flag=false;	// flag
 const int stars_z_dist=32;				// depth number
 const int star_n=1280;		// total star number
-float star_x[star_n];			// position x
-float star_y[star_n];			// position y
-float star_z[star_n];			// position z
+float stars[star_n*3];			// star positions xyz
 /* lake variable				*/
 bool lake_flag=false;		// flag
-int lake_n1=48;					// number x
-int lake_n2=48;					// number y
+const int lake_n1=48;					// number x
+const int lake_n2=48;					// number y
 const float lake_w=0.5f;			// space between dot
 //Shapes
 float quad_vtx[]={ -0.325f,-0.325f,0.325f,-0.325f,0.325f,0.325f,-0.325f,0.325f };
@@ -494,12 +492,13 @@ int InitGL(void)
 	for (int i=0; i<star_n; i++)
 	{
 		float angle=(rand()%3600)*0.1f;
-		float radius=((rand()%1000)*0.01f);
+		float radius=((rand()%750)*0.01f);
 		radius=1.5f*1.125f+((radius<0.0f) ? -radius : radius);
-		star_x[i]=radius*cosf(angle);
-		star_y[i]=radius*sinf(angle);
-		star_z[i]=(rand()%(int)(0.25f*stars_z_dist*1000))*0.001f;
-		if (angle>180) star_z[i]=-star_z[i];
+		stars[i]=radius*cosf(angle);
+		stars[i+1]=radius*sinf(angle);
+		stars[i+2]=(rand()%(int)(0.25f*stars_z_dist*1000))*0.001f;
+		if (angle>180) 
+			stars[i+2]=-stars[i+2];
 	}
 	float y=0;
 	int k=0;
@@ -1015,19 +1014,11 @@ int DrawGLScene(void) // draw scene
 	if (stars_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
-		glVertexPointer(2, GL_FLOAT, 0, quad_vtx);
+		glPointSize(4.0f);
+		glVertexPointer(3, GL_FLOAT, 0, stars);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		int stars_to_render=min(star_n, star_n*((float)intro_i/(float)intro_n));
-		for (int i=0; i<stars_to_render; i++)
-		{
-			glPushMatrix();
-			glTranslatef(star_x[i], star_y[i], star_z[i]);
-			MakeBillboard();
-			glRotatef(0, 0, 0, 1.0f);
-			glScalef(0.1f, 0.1f, 0.1f);
-			glDrawArrays(GL_QUADS, 0, 4);
-			glPopMatrix();
-		}
+		glDrawArrays(GL_POINTS, 0, stars_to_render);
 	}
 	glEnable(GL_BLEND);
 	if (lake_flag)
