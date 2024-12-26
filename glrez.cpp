@@ -402,6 +402,29 @@ void speed()
 	speed_angle=main_angle;
 }
 
+void quad(float* vertices, int subdivisions) {
+	//Expected length of vertices array is = subdivisions * subdivisions * 4;
+	const float size=10;
+	float stepX=size/subdivisions;
+	float stepY=size/subdivisions;
+
+	int index = 0;
+    for (int i = 0; i < subdivisions; ++i) {
+        for (int j = 0; j < subdivisions; ++j) {
+            float x0 = i * stepX;
+            float y0 = j * stepY;
+            float x1 = x0 + stepX;
+            float y1 = y0 + stepY;
+
+            // Define the quad vertices
+            vertices[index++] = x0; vertices[index++] = y0; // Bottom-left
+            vertices[index++] = x1; vertices[index++] = y0; // Bottom-right
+            vertices[index++] = x1; vertices[index++] = y1; // Top-right
+            vertices[index++] = x0; vertices[index++] = y1; // Top-left
+        }
+    }
+}
+
 void glenz() {
 	int x=0;
 	int y=1;
