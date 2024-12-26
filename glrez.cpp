@@ -1473,13 +1473,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				skip_dos=true;
 				intro_i=intro_n;
 				loop_counter=0;
-				mod_play=false;
+				mod_play=true;
 				mod_ord=-1;
 				mod_row=-1;
 				mod_prv_row=0;
 				FMUSIC_StopSong(mod);
 				FMUSIC_FreeSong(mod);
 				mod=FMUSIC_LoadSong(MAKEINTRESOURCE(IDR_XM1), NULL);
+				FMUSIC_PlaySong(mod);
 				keys[VK_F12]=false;
 			}
 		}
