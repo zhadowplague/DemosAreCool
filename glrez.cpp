@@ -54,8 +54,7 @@ int screen_h;						// height
 int window_color=32;		// color depth
 int window_depth=16;		// depth buffer
 /* object variable			*/
-float	main_angle;				// main angle
-float	main_angle_prv;		// previous main angle
+float main_angle;
 float camera_target_y;
 float camera_target_x;
 float camera_target_z;
@@ -86,13 +85,12 @@ char* txt_hidden4[]={ "bye", nullptr };
 char** txt=txt_hidden1;
 /* cube variable				*/
 bool cube_flag=false;		// flag
-const int cube_n=16;					// number
-float cube_x[256];			// position x
-float cube_y[256];			// position y
-float cube_z[256];			// position z
-float cube_a[256];			// angle
-float cube_w=0.5f;// width
-float cube_h=2.0f;// height
+const int cube_n=16;
+const int cube_l=cube_n*cube_n;
+float cube_x[cube_l];			// position x
+float cube_y[cube_l];			// position y
+float cube_z[cube_l];			// position z
+float cube_a[cube_l];			// angle
 float cube_ratio=PID*cube_n;// ratio
 float cube_angle=0;			// angle
 float cube_vtx[72]={
@@ -141,10 +139,8 @@ float cube_face_tex[48]={
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //leftside
 };
 float cube_white_col[72];         // cube white vertex colors
-float cube_black_col[72];         // cube white vertex colors
-float cube_rainb_col[72];         // cube rainbow vertex colors
-/* circuit variable			*/
-bool circuit_flag=false;// flag
+float cube_body_col[72];         // cube white vertex colors
+float cube_ground_col[72];         // cube rainbow vertex colors
 /* sun variable */
 bool sun_flag=false;
 GEOMETRY* cur_geom;
@@ -510,9 +506,9 @@ int InitGL(void)
 	}
 	for (int i=0; i<72; i+=3)
 	{
-		cube_black_col[i] = 1;
-		cube_black_col[i+1] =1-0.005;
-		cube_black_col[i+2] = 0;
+		cube_body_col[i] = 1;
+		cube_body_col[i+1] =1-0.005;
+		cube_body_col[i+2] = 0;
 	}
 	//stars
 	for (int i=0; i<star_n; i++)
@@ -703,7 +699,6 @@ int DrawGLScene(void) // draw scene
 	timer_global_previous=timer_global;
 	timer_global=timer->elapsed;
 	// compute rotation
-	main_angle_prv=main_angle;
 	main_angle=timer_global*100.0f*PID;
 	// start music
 	if (!mod_play&&(timer_global>dos_time||skip_dos))
@@ -747,8 +742,6 @@ int DrawGLScene(void) // draw scene
 						intro_flag=true;
 						stars_flag=true;
 						cube_flag=false;
-						circuit_flag=false;
-						lake_flag=true;
 						glenz_frame=2;
 						intro_i=intro_n;
 						camera_smooth=0;
@@ -776,7 +769,6 @@ int DrawGLScene(void) // draw scene
 						lake_flag=true;
 						cube_flag=true;
 						cube_angle=main_angle;
-						circuit_flag=false;
 						intro_flag=false;
 						speed_flag=false;
 						speed_value=1.0f;
@@ -816,7 +808,6 @@ int DrawGLScene(void) // draw scene
 					{
 						horizon_flag=false;
 						cube_flag=false;
-						circuit_flag=false;
 						speed_flag=false;
 						lake_flag=false;
 						stars_flag=true;
@@ -956,7 +947,6 @@ int DrawGLScene(void) // draw scene
 	if (cube_flag)
 	{
 		float radius=1-cosf((cube_angle-main_angle)*0.125f);
-		float h=(float)(0.1f+(circuit_flag ? 0.2f-fabs(synchro_value*0.2f*cosf((main_angle-synchro_angle)*8.0f)) : 0));
 		int k=0;
 		for (int i=0; i<cube_n; i++)
 		{
@@ -972,27 +962,25 @@ int DrawGLScene(void) // draw scene
 				k++;
 			}
 		}
-		if (circuit_flag)
+		for (int i=0; i<3; i++)
 		{
-			for (int i=0; i<3; i++)
-			{
-				float c1=0.5f*cosf(cube_a[i]*4.0f);
-				float c2=0.5f*sinf(cube_a[i]*4.0f);
-				float circuit_col[]={ c1,0,c2,c2,c1,0,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,0,c2,c1,c1,0,c2 };
-				for (int j=0; j<24; j++) {
-					cube_rainb_col[j+i*24]=circuit_col[j];
-				}
+			float c1=0.5f*cosf(cube_a[i]*4.0f);
+			float c2=0.5f*sinf(cube_a[i]*4.0f);
+			float circuit_col[]={ c1,0,c2,c2,c1,0,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,0,c2,c1,c1,0,c2 };
+			for (int j=0; j<24; j++) {
+				cube_ground_col[j+i*24]=circuit_col[j];
 			}
 		}
 		glEnableClientState(GL_COLOR_ARRAY);
 		glDisable(GL_BLEND);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-		glColorPointer(3, GL_FLOAT, 0, circuit_flag?cube_rainb_col:cube_white_col);
+		glColorPointer(3, GL_FLOAT, 0, cube_ground_col);
 		for (int i=0; i<k; i++)
 		{
 			glPushMatrix();
 			glTranslatef(-3.5, 0, 0);
 			glRotatef(-90, 0, 0, 1);
+			glScalef(2, 2, 2);
 			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
 			glDrawArrays(GL_QUADS, 0, 20);
 			glPopMatrix();
@@ -1153,7 +1141,7 @@ int DrawGLScene(void) // draw scene
 			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]);
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-			glColorPointer(3, GL_FLOAT, 0, cube_black_col);
+			glColorPointer(3, GL_FLOAT, 0, cube_body_col);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glPopMatrix();
 		}
@@ -1218,6 +1206,15 @@ int DrawGLScene(void) // draw scene
 		glCallLists(strlen(txt_loop), GL_UNSIGNED_BYTE, txt_loop);
 		glPopAttrib();
 	}
+
+#if _DEBUG
+	GLenum err;
+	while ((err=glGetError())!=GL_NO_ERROR)
+	{
+		printf("statement to attach breakpoint to");
+	}
+#endif
+
 	return true;
 }
 
@@ -1254,7 +1251,6 @@ int CreateGLWindow(char* title)
 	screen_w=fullscreen ? w : window_w;
 	screen_h=fullscreen ? h : window_h;
 	ratio_2d=(int)(screen_w/400);
-	main_angle_prv=0;
 	WindowRect.left=(long)(fullscreen ? 0 : 2);		// set left value
 	WindowRect.right=(long)screen_w;					// set right value
 	WindowRect.top=(long)(fullscreen ? 0 : 2);		// set top value
@@ -1478,7 +1474,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			{
 				intro_flag=false;
 				cube_flag=false;
-				circuit_flag=false;
 				speed_flag=false;
 				stars_flag=true;
 				lake_flag=false;
