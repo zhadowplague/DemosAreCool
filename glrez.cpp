@@ -233,11 +233,10 @@ const int star_n=1280;		// total star number
 float stars[star_n*3];			// star positions xyz
 /* lake variable				*/
 bool lake_flag=false;		// flag
-const int lake_n1=48;					// number x
-const int lake_n2=48;					// number y
-const float lake_w=0.5f;			// space between dot
-//Shapes
-float quad_vtx[]={ -0.325f,-0.325f,0.325f,-0.325f,0.325f,0.325f,-0.325f,0.325f };
+const int lake_size=768;					
+float lake_quad_vtx[lake_size];
+float lake_vtx[lake_size];
+float lake_particle_vtx[lake_size];
 /* horizon variable				*/
 bool horizon_flag=false;		// flag
 const int horizon_bar=24;				// bar number
@@ -403,51 +402,25 @@ void speed()
 }
 
 void quad(float* vertices, int subdivisions) {
-	//Expected length of vertices array is = subdivisions * subdivisions * 4;
+	//Expected length of vertices array is = subdivisions(width) * subdivisions(height) * 4(verts per quad) * 3(xyz);
 	const float size=10;
-	float stepX=size/subdivisions;
-	float stepY=size/subdivisions;
+	const float stepX=size/subdivisions;
+	const float stepY=size/subdivisions;
 
 	int index = 0;
-    for (int i = 0; i < subdivisions; ++i) {
-        for (int j = 0; j < subdivisions; ++j) {
-            float x0 = i * stepX;
-            float y0 = j * stepY;
-            float x1 = x0 + stepX;
-            float y1 = y0 + stepY;
+	for (int i=0; i<subdivisions; ++i) {
+		for (int j=0; j<subdivisions; ++j) {
+			float x0=i*stepX;
+			float y0=j*stepY;
+			float x1=x0+stepX;
+			float y1=y0+stepY;
 
-            // Define the quad vertices
-            vertices[index++] = x0; vertices[index++] = y0; // Bottom-left
-            vertices[index++] = x1; vertices[index++] = y0; // Bottom-right
-            vertices[index++] = x1; vertices[index++] = y1; // Top-right
-            vertices[index++] = x0; vertices[index++] = y1; // Top-left
-        }
-    }
-}
-
-void glenz() {
-	int x=0;
-	int y=1;
-	int z=2;
-	for (int i=0; i<glenz_n; i+=3)
-	{
-		float a=glenz_pos[i+x];
-		glenz_pos[i+x]=glenz_pos[i+y];
-		glenz_pos[i+y]=a;
-		a=glenz_pos[i+x];
-		glenz_pos[i+x]=glenz_pos[i+z];
-		glenz_pos[i+z]=a;
-
-		glenz_pos[i+x]*=0.5;
-		glenz_pos[i+y]*=0.5;
-		glenz_pos[i+z]*=0.5;
-
-		a=glenz_scale[i+x];
-		glenz_scale[i+x]=glenz_scale[i+y];
-		glenz_scale[i+y]=a;
-		a=glenz_scale[i+x];
-		glenz_scale[i+x]=glenz_scale[i+z];
-		glenz_scale[i+z]=a;
+			// Define the quad vertices in 3D space
+			vertices[index++]=x0; vertices[index++]=y0; vertices[index++]=0; // Bottom-left
+			vertices[index++]=x1; vertices[index++]=y0; vertices[index++]=0; // Bottom-right
+			vertices[index++]=x1; vertices[index++]=y1; vertices[index++]=0; // Top-right
+			vertices[index++]=x0; vertices[index++]=y1; vertices[index++]=0; // Top-left
+		}
 	}
 }
 
@@ -497,9 +470,38 @@ int InitGL(void)
 	SelectObject(hDC, hFont);
 	fontBase=glGenLists(96); // ASCII characters 32-127
 	wglUseFontBitmaps(hDC, 32, 96, fontBase);
-	// initialize some variable
+	// initialize timer
 	timer=new Timer();
-	glenz();
+	//glenz
+	{
+		int x=0;
+		int y=1;
+		int z=2;
+		for (int i=0; i<glenz_n; i+=3)
+		{
+			float a=glenz_pos[i+x];
+			glenz_pos[i+x]=glenz_pos[i+y];
+			glenz_pos[i+y]=a;
+			a=glenz_pos[i+x];
+			glenz_pos[i+x]=glenz_pos[i+z];
+			glenz_pos[i+z]=a;
+
+			glenz_pos[i+x]*=0.5;
+			glenz_pos[i+y]*=0.5;
+			glenz_pos[i+z]*=0.5;
+
+			a=glenz_scale[i+x];
+			glenz_scale[i+x]=glenz_scale[i+y];
+			glenz_scale[i+y]=a;
+			a=glenz_scale[i+x];
+			glenz_scale[i+x]=glenz_scale[i+z];
+			glenz_scale[i+z]=a;
+		}
+	}
+	//lake
+	quad(lake_vtx, 8);
+	quad(lake_quad_vtx, 8);
+	quad(lake_particle_vtx, 8);
 	//cube
 	for (int i = 0; i < 72; i++)
 	{
@@ -523,6 +525,7 @@ int InitGL(void)
 		if (angle>180) 
 			stars[i+2]=-stars[i+2];
 	}
+	//horizon
 	float y=0;
 	int k=0;
 	float x1, x2, y1, y2;
@@ -744,7 +747,7 @@ int DrawGLScene(void) // draw scene
 						stars_flag=true;
 						cube_flag=false;
 						circuit_flag=false;
-						lake_flag=false;
+						lake_flag=true;
 						glenz_frame=2;
 						intro_i=intro_n;
 						camera_smooth=0;
@@ -995,7 +998,7 @@ int DrawGLScene(void) // draw scene
 		}
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
-
+	//draw sun
 	if (sun_flag) 
 	{
 		sf += sfi * timer_delta * 50;
@@ -1016,7 +1019,7 @@ int DrawGLScene(void) // draw scene
 		DrawGeom(cur_geom);
 		glPopMatrix();
 	}
-
+	//draw intro fog and glenz standing on box
 	if (intro_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
@@ -1033,7 +1036,7 @@ int DrawGLScene(void) // draw scene
 		fog_color[2]=initial_b*introPercentage;
 		glFogfv(GL_FOG_COLOR, fog_color);
 	}
-	glDisable(GL_DEPTH_TEST);
+	//draw stars
 	if (stars_flag)
 	{
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
@@ -1043,37 +1046,30 @@ int DrawGLScene(void) // draw scene
 		int stars_to_render=min(star_n, star_n*((float)intro_i/(float)intro_n));
 		glDrawArrays(GL_POINTS, 0, stars_to_render);
 	}
-	glEnable(GL_BLEND);
+	//draw lake
 	if (lake_flag)
 	{
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
-		float w=0.325f;
-		float h=0.325f;
-		float angle=sync2_value*cosf((main_angle-sync2_angle)*1.25f);
-		float p_x=-lake_n1*lake_w*0.25f;
-		float z=-lake_n2*lake_w*0.5f;
-		glVertexPointer(2, GL_FLOAT, 0, quad_vtx);
-		for (int i=0; i<lake_n1; i++)
-		{
-			float x=p_x+i*lake_w;
-			angle=720.0f*PID/lake_n1*i+cosf(i*0.375f)+main_angle*1.625f;
-			for (int j=0; j<lake_n2; j++)
-			{
-				float y=-0.5f-1*1.5f*cosf(main_angle*0.25f)+sinf((i+j)*0.25f)+1*cosf(angle)+1*sinf(720.0f*1.5f*PID/lake_n2*j+main_angle);
-				glColor3f(0.5f+0.5f*cosf(90.0f*PID*y), 1.0f, 0.5f+0.5f*sinf(90.0f*PID*y));
-				if (y<-2.0f&&y>-2.5f) 
-					glColor3f(0.625f, 1.0f, 0.75f);
-				if (y<-1.0f) 
-					y=-y-1.35f;
-				if (y<-0.625f) 
-					y=-0.5f;
-				glPushMatrix();
-				glTranslatef(y-4, p_x+x+20, z+j*lake_w);
-				MakeBillboard();
-				glDrawArrays(GL_QUADS, 0, 4);
-				glPopMatrix();
-			}
+		for (int z=0; z<lake_size; z+=3) {
+			const float wave_amplitude=0.5;
+			const float wave_speed=1.5;
+			float xPos=lake_quad_vtx[z];
+			float zPos=lake_quad_vtx[z+1]; 
+			lake_vtx[z+2]=lake_quad_vtx[z+2]+wave_amplitude*sin((xPos+zPos)+wave_speed*timer_global);
+			lake_particle_vtx[z+2]=lake_quad_vtx[z+2]+sin((xPos+zPos)+wave_speed*(timer_global-1));
 		}
+		glColor3f(0.625f, 1.0f, 0.75f);
+		glVertexPointer(3, GL_FLOAT, 0, lake_vtx);
+		glPushMatrix();
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-10, 10, -4);
+		glScalef(2, 2, 2);
+		glDrawArrays(GL_QUADS, 0, 256);
+		glVertexPointer(3, GL_FLOAT, 0, lake_particle_vtx);
+		glDrawArrays(GL_POINTS, 0, 256);
+		glPopMatrix();
 	}
 	// draw horizon
 	if (horizon_flag)
@@ -1120,6 +1116,7 @@ int DrawGLScene(void) // draw scene
 			glTranslatef(-16, 0, 0);
 			glRotatef(360*(float)i/(float)horizon_bar, 0, 0, 1);
 			glTranslatef(0, 32, 0);
+			glScalef(2, 2, 2);
 			glDrawArrays(GL_QUADS, horizon_n*i*horizon_v, horizon_n*horizon_v);
 			glPopMatrix();
 		}
