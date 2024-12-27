@@ -237,6 +237,7 @@ const int lake_size=768;
 float lake_quad_vtx[lake_size];
 float lake_vtx[lake_size];
 float lake_particle_vtx[lake_size];
+float lake_col[lake_size];
 /* horizon variable				*/
 bool horizon_flag=false;		// flag
 const int horizon_bar=24;				// bar number
@@ -1059,8 +1060,12 @@ int DrawGLScene(void) // draw scene
 			float zPos=lake_quad_vtx[z+1]; 
 			lake_vtx[z+2]=lake_quad_vtx[z+2]+wave_amplitude*sin((xPos+zPos)+wave_speed*timer_global);
 			lake_particle_vtx[z+2]=lake_quad_vtx[z+2]+sin((xPos+zPos)+wave_speed*(timer_global-1));
+			lake_col[z]=0;
+			lake_col[z+1]=0.7+0.3*fabs(sin(lake_vtx[z+2]));;
+			lake_col[z+2]=0.7+0.3*fabs(sin(lake_vtx[z+2]));
 		}
-		glColor3f(0.625f, 1.0f, 0.75f);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(3, GL_FLOAT, 0, lake_col);
 		glVertexPointer(3, GL_FLOAT, 0, lake_vtx);
 		glPushMatrix();
 		glRotatef(90, 0, 1, 0);
@@ -1070,6 +1075,7 @@ int DrawGLScene(void) // draw scene
 		glVertexPointer(3, GL_FLOAT, 0, lake_particle_vtx);
 		glDrawArrays(GL_POINTS, 0, 256);
 		glPopMatrix();
+		glDisableClientState(GL_COLOR_ARRAY);
 	}
 	// draw horizon
 	if (horizon_flag)
