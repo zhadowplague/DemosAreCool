@@ -74,8 +74,8 @@ float fog_color[]={ initial_r,initial_g,initial_b,1.0f };	// fog color definitio
 /* text variable				*/
 char* name="Bin - Demos are cool";
 char* txt_dos1="F2: wireframe rendering";
-char* txt_dos2="F12: credits";
-char* txt_dos3="SPACE: fullscreen/windowed";
+char* txt_dos2="F11: fullscreen/windowed";
+char* txt_dos3="F12: credits";
 char* txt_loop="Looping";
 
 char* txt_hidden1[]={ "- Credits 1 -", "code: rez", "code: bin", "code: drewb", nullptr};
@@ -85,15 +85,15 @@ char* txt_hidden4[]={ "bye", nullptr };
 char** txt=txt_hidden1;
 /* cube variable				*/
 bool cube_flag=false;		// flag
-const int cube_n=16;
+const int verts_in_cube=72;
+const int cube_n=8;
 const int cube_l=cube_n*cube_n;
 float cube_x[cube_l];			// position x
 float cube_y[cube_l];			// position y
 float cube_z[cube_l];			// position z
-float cube_a[cube_l];			// angle
-float cube_ratio=PID*cube_n;// ratio
-float cube_angle=0;			// angle
-float cube_vtx[72]={
+float cube_ground_col[cube_l][96];         // colors
+const float cube_ratio=PID*cube_n;// ratio
+float cube_vtx[verts_in_cube]={
 	  // Front face
     -0.5f, -0.5f,  0.5f,  // Bottom-left
      0.5f, -0.5f,  0.5f,  // Bottom-right
@@ -138,9 +138,15 @@ float cube_face_tex[48]={
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //leftside
 };
-float cube_white_col[72];         // cube white vertex colors
-float cube_body_col[72];         // cube white vertex colors
-float cube_ground_col[72];         // cube rainbow vertex colors
+float cube_bin_tex[48]={
+	0, 0.6, 0, 0, 1, 0,1, 0.6,
+	0, 0.6, 0, 0, 1, 0,1, 0.6,
+	0, 0.6, 0, 0, 1, 0,1, 0.6,
+	0, 0.6, 0, 0, 1, 0,1, 0.6,
+	0, 0.6, 0, 0, 1, 0,1, 0.6,
+	0, 0.6, 0, 0, 1, 0,1, 0.6,
+};
+float cube_white_col[verts_in_cube];         // cube white vertex colors
 /* sun variable */
 bool sun_flag=false;
 GEOMETRY* cur_geom;
@@ -148,6 +154,7 @@ float sf;
 float sfi;
 /* glenz variable */
 bool glenz_flag=true;
+bool jump_flag=false;
 int glenz_frame=0;
 int glenz_scale_frame=0;
 const int glenz_n=81;
@@ -234,6 +241,7 @@ float lake_quad_vtx[lake_size];
 float lake_vtx[lake_size];
 float lake_particle_vtx[lake_size];
 float lake_col[lake_size];
+float lake_particle_col[1024];
 /* horizon variable				*/
 bool horizon_flag=false;		// flag
 const int horizon_bar=24;				// bar number
@@ -504,11 +512,18 @@ int InitGL(void)
 	{
 		cube_white_col[i] = 1;
 	}
-	for (int i=0; i<72; i+=3)
 	{
-		cube_body_col[i] = 1;
-		cube_body_col[i+1] =1-0.005;
-		cube_body_col[i+2] = 0;
+		int k=0;
+		for (int i=0; i<cube_n; i++)
+		{
+			float x=-(cube_n-1)*0.5f+i;
+			for (int j=0; j<cube_n; j++)
+			{
+				cube_x[k]=x;
+				cube_z[k]=-(cube_n-1)*0.5f+j;
+				k++;
+			}
+		}
 	}
 	//stars
 	for (int i=0; i<star_n; i++)
@@ -742,6 +757,7 @@ int DrawGLScene(void) // draw scene
 						intro_flag=true;
 						stars_flag=true;
 						cube_flag=false;
+						sun_flag=false;
 						glenz_frame=2;
 						intro_i=intro_n;
 						camera_smooth=0;
@@ -768,7 +784,6 @@ int DrawGLScene(void) // draw scene
 						sun_flag=true;
 						lake_flag=true;
 						cube_flag=true;
-						cube_angle=main_angle;
 						intro_flag=false;
 						speed_flag=false;
 						speed_value=1.0f;
@@ -946,41 +961,38 @@ int DrawGLScene(void) // draw scene
 	// draw ground
 	if (cube_flag)
 	{
-		float radius=1-cosf((cube_angle-main_angle)*0.125f);
+		const float radius=0.2*cosf(main_angle*0.25f);
 		int k=0;
 		for (int i=0; i<cube_n; i++)
 		{
 			float a=i*cube_ratio;
-			float x=-(cube_n-1)*0.5f+i;
 			for (int j=0; j<cube_n; j++)
 			{
-				cube_x[k]=x;
-				float b=j*cube_ratio;
-				cube_a[k]=((cube_angle-main_angle)*0.5f+a+b);
-				cube_y[k]=radius*cosf(cube_a[k]);
-				cube_z[k]=-(cube_n-1)*0.5f+j;
+				const float b=j*cube_ratio;
+				cube_y[k]=cosf(main_angle*0.5f+b);
+				const float c1=0.5f*cosf(cube_y[k]*4.0f);
+				const float c2=0.5f*sinf(cube_y[k]*4.0f);
+				const float circuit_col[]={ c1,0,c2,c2,c1,0,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,0,c2,c1,c1,0,c2 };
+				for (int l=0; l<24; l++) {
+					cube_ground_col[k][l]=circuit_col[l];
+					cube_ground_col[k][l+24]=circuit_col[l];
+					cube_ground_col[k][l+48]=circuit_col[l];
+					cube_ground_col[k][l+72]=j>7||j<1?0:1;
+				}
 				k++;
 			}
 		}
-		for (int i=0; i<3; i++)
-		{
-			float c1=0.5f*cosf(cube_a[i]*4.0f);
-			float c2=0.5f*sinf(cube_a[i]*4.0f);
-			float circuit_col[]={ c1,0,c2,c2,c1,0,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,0,c2,c1,c1,0,c2 };
-			for (int j=0; j<24; j++) {
-				cube_ground_col[j+i*24]=circuit_col[j];
-			}
-		}
 		glEnableClientState(GL_COLOR_ARRAY);
-		glDisable(GL_BLEND);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-		glColorPointer(3, GL_FLOAT, 0, cube_ground_col);
 		for (int i=0; i<k; i++)
 		{
+			glColorPointer(4, GL_FLOAT, 0, cube_ground_col[i]);
 			glPushMatrix();
-			glTranslatef(-3.5, 0, 0);
+			glTranslatef(-3.5, -4, 0);
 			glRotatef(-90, 0, 0, 1);
-			glScalef(2, 2, 2);
+			glScalef(3, 3, 3);
 			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
 			glDrawArrays(GL_QUADS, 0, 20);
 			glPopMatrix();
@@ -1002,7 +1014,7 @@ int DrawGLScene(void) // draw scene
 		glDisable(GL_FOG);
 		glDisable(GL_DEPTH_TEST);
 		glPushMatrix();
-		glTranslatef(4, 16, 0);
+		glTranslatef(6, 16, 0);
 		glRotatef(timer_global, 1, 1, 0);
 		glScalef(4, 4, 4);
 		DrawGeom(cur_geom);
@@ -1041,6 +1053,7 @@ int DrawGLScene(void) // draw scene
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_COLOR, GL_SRC_ALPHA);
+		int k=0;
 		for (int z=0; z<lake_size; z+=3) {
 			const float wave_amplitude=0.5;
 			const float wave_speed=1.5;
@@ -1049,17 +1062,24 @@ int DrawGLScene(void) // draw scene
 			lake_vtx[z+2]=lake_quad_vtx[z+2]+wave_amplitude*sin((xPos+zPos)+wave_speed*timer_global);
 			lake_particle_vtx[z+2]=lake_quad_vtx[z+2]+sin((xPos+zPos)+wave_speed*(timer_global-1));
 			lake_col[z]=0;
-			lake_col[z+1]=0.7+0.3*fabs(sin(lake_vtx[z+2]));;
+			lake_col[z+1]=0.7+0.3*fabs(sin(lake_vtx[z+2]));
 			lake_col[z+2]=0.7+0.3*fabs(sin(lake_vtx[z+2]));
+			lake_particle_col[k]=lake_col[z];
+			lake_particle_col[k+1]=lake_col[z+1];
+			lake_particle_col[k+2]=lake_col[z+2];
+			lake_particle_col[k+3]=lake_particle_vtx[z+2]<0.4 ? 0 : 1;
+			k+=4;
 		}
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(3, GL_FLOAT, 0, lake_col);
 		glVertexPointer(3, GL_FLOAT, 0, lake_vtx);
 		glPushMatrix();
 		glRotatef(90, 0, 1, 0);
-		glTranslatef(-10, 10, -4);
-		glScalef(2, 2, 2);
+		glTranslatef(-20, 16, -3);
+		glScalef(5, 5, 5);
 		glDrawArrays(GL_QUADS, 0, 256);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColorPointer(4, GL_FLOAT, 0, lake_particle_col);
 		glVertexPointer(3, GL_FLOAT, 0, lake_particle_vtx);
 		glDrawArrays(GL_POINTS, 0, 256);
 		glPopMatrix();
@@ -1122,9 +1142,9 @@ int DrawGLScene(void) // draw scene
 	if (glenz_flag)
 	{
 		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_DEPTH_TEST);
 		glEnableClientState(GL_COLOR_ARRAY);
 		int frame=27*glenz_frame;
-		glEnable(GL_DEPTH_TEST);
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
@@ -1133,7 +1153,6 @@ int DrawGLScene(void) // draw scene
 		glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 		glDrawArrays(GL_QUADS, 0, 24);
 		glPopMatrix();
-		glDisable(GL_TEXTURE_2D);
 
 		int endFrame=27*(glenz_frame+1);
 		for (int i=frame+3; i<endFrame; i+=3) {
@@ -1141,11 +1160,13 @@ int DrawGLScene(void) // draw scene
 			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]);
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
-			glColorPointer(3, GL_FLOAT, 0, cube_body_col);
+			glTexCoordPointer(2, GL_FLOAT, 0, cube_bin_tex);
+			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glPopMatrix();
 		}
 		glDisableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_DEPTH_TEST);
 	}
 	
@@ -1450,14 +1471,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			if ((active&&!DrawGLScene())||keys[VK_ESCAPE]) done=true; else SwapBuffers(hDC);	// exit or swap buffers
 			if (keys[VK_SPACE])
 			{
-				KillGLWindow();
-				fullscreen=!fullscreen;
-				if (!CreateGLWindow(name)) return 0;		// quit if window not created
+				jump_flag=true;
 				keys[VK_SPACE]=false;
-			}
-			if (keys[VK_F1])
-			{
-				keys[VK_F1]=false;
 			}
 			if (keys[VK_F2])
 			{
@@ -1469,6 +1484,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			{
 				skip_dos=true;
 				keys[VK_F3]=false;
+			}
+			if (keys[VK_F11])
+			{
+				KillGLWindow();
+				fullscreen=!fullscreen;
+				if (!CreateGLWindow(name)) return 0;		// quit if window not created
+				keys[VK_F11]=false;
 			}
 			if (keys[VK_F12])
 			{
