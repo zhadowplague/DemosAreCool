@@ -139,14 +139,18 @@
   <ItemGroup>
     <ClCompile Include="geom.cpp" />
     <ClCompile Include="glrez.cpp" />
+    <ClCompile Include="noise.cpp" />
     <ClCompile Include="nolibc.cpp" />
     <ClCompile Include="timer.cpp" />
+    <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="geom.h" />
     <ClInclude Include="minifmod.h" />
+    <ClInclude Include="noise.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="timer.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="minifmod.lib" />

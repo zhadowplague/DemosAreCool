@@ -7,6 +7,8 @@
 #include "timer.h"
 #include "minifmod.h"
 #include "geom.h"
+#include "utils.h"
+#include "noise.h"
 
 #define PI 3.14159265358979323846f // pi
 #define PID PI/180.0f			// pi ratio
@@ -88,6 +90,7 @@ bool cube_flag=false;		// flag
 const int verts_in_cube=72;
 const int cube_n=8;
 const int cube_l=cube_n*cube_n;
+const int middle_cube=cube_n/2;
 float cube_x[cube_l];			// position x
 float cube_y[cube_l];			// position y
 float cube_z[cube_l];			// position z
@@ -150,6 +153,7 @@ float cube_white_col[verts_in_cube];         // cube white vertex colors
 /* sun variable */
 bool sun_flag=false;
 GEOMETRY* cur_geom;
+Noise noise;
 float sf;
 float sfi;
 /* glenz variable */
@@ -231,7 +235,7 @@ int intro_i=1;					// counter
 float intro_angle=0;		// angle
 /* tunnel variable			*/
 bool stars_flag=false;	// flag
-const int stars_z_dist=32;				// depth number
+const int stars_z_dist=16;				// depth number
 const int star_n=1280;		// total star number
 float stars[star_n*3];			// star positions xyz
 /* lake variable				*/
@@ -404,37 +408,6 @@ void speed()
 {
 	speed_flag=true;
 	speed_angle=main_angle;
-}
-
-float lerp(float a, float b, float t) {
-	return a+t*(b-a);
-}
-
-float ilerp(float a, float b, float x) {
-	return (x-a)/(b-a);
-}
-
-void quad(float* vertices, int subdivisions) {
-	//Expected length of vertices array is = subdivisions(width) * subdivisions(height) * 4(verts per quad) * 3(xyz);
-	const float size=10;
-	const float stepX=size/subdivisions;
-	const float stepY=size/subdivisions;
-
-	int index = 0;
-	for (int i=0; i<subdivisions; ++i) {
-		for (int j=0; j<subdivisions; ++j) {
-			float x0=i*stepX;
-			float y0=j*stepY;
-			float x1=x0+stepX;
-			float y1=y0+stepY;
-
-			// Define the quad vertices in 3D space
-			vertices[index++]=x0; vertices[index++]=y0; vertices[index++]=0; // Bottom-left
-			vertices[index++]=x1; vertices[index++]=y0; vertices[index++]=0; // Bottom-right
-			vertices[index++]=x1; vertices[index++]=y1; vertices[index++]=0; // Top-right
-			vertices[index++]=x0; vertices[index++]=y1; vertices[index++]=0; // Top-left
-		}
-	}
 }
 
 void rectangle(int x, int y, int w, int h)
@@ -833,6 +806,7 @@ int DrawGLScene(void) // draw scene
 				case 7:
 					if (mod_row==0)
 					{
+						cube_y[middle_cube]=0;
 						horizon_flag=false;
 						cube_flag=false;
 						speed_flag=false;
@@ -977,14 +951,17 @@ int DrawGLScene(void) // draw scene
 		int k=0;
 		for (int i=0; i<cube_n; i++)
 		{
-			float a=i*cube_ratio;
+			const float x=i*cube_ratio;
 			for (int j=0; j<cube_n; j++)
 			{
 				const float y=j*cube_ratio;
-				cube_y[k]=cosf(main_angle*0.5f+y);
-				const float r=cosf(cube_y[k]);
-				const float g=sinf(cube_y[k]);
-				const float b=cosf(cube_y[k]+PI);
+				const float wave=cosf(main_angle*0.5f+y)+sinf(x);
+				cube_y[k]=0.5*wave;
+
+				const float n=noise.noise(x, y);
+				const float r=n*wave;
+				const float g=n*sinf(wave);
+				const float b=n*cosf(wave+PI);
 				for (int l=0; l<96; l+=4) {
 					cube_ground_col[k][l]=fabs(r);
 					cube_ground_col[k][l+1]=fabs(g);
@@ -1000,10 +977,10 @@ int DrawGLScene(void) // draw scene
 		for (int i=0; i<k; i++)
 		{
 			glColorPointer(4, GL_FLOAT, 0, cube_ground_col[i]);
-			glPushMatrix();
-			glTranslatef(-3.5, -4, 0);
+			glPushMatrix();//x=up y=right
+			glTranslatef(-5, 0, 0);
 			glRotatef(-90, 0, 0, 1);
-			glScalef(3, 3, 3);
+			glScalef(4, 4, 4);
 			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glPopMatrix();
@@ -1021,11 +998,12 @@ int DrawGLScene(void) // draw scene
 		}
 		UpdatePts(cur_geom, sf);
 
-		glColor3f(1, 0.5f, 0.5f);
+		float c=stars_flag ? 1 : 0.5f;
+		glColor3f(1, c, c);
 		glDisable(GL_FOG);
 		glDisable(GL_DEPTH_TEST);
-		glPushMatrix();
-		glTranslatef(6, 16, 0);
+		glPushMatrix();//x=up y=right
+		glTranslatef(8, 16, 0);
 		glRotatef(timer_global, 1, 1, 0);
 		glScalef(4, 4, 4);
 		DrawGeom(cur_geom);
@@ -1055,8 +1033,10 @@ int DrawGLScene(void) // draw scene
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
 		glPointSize(4.0f);
 		glVertexPointer(3, GL_FLOAT, 0, stars);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		int stars_to_render=min(star_n, star_n*((float)intro_i/(float)intro_n));
+		const float percent=(float)intro_i/(float)intro_n;
+		const float c=min(1, max(0.5, percent)*1.5f);
+		glColor3f(c, c, c);
+		const int stars_to_render=min(star_n, star_n*percent);
 		glDrawArrays(GL_POINTS, 0, stars_to_render);
 	}
 	//draw lake
@@ -1074,8 +1054,8 @@ int DrawGLScene(void) // draw scene
 			lake_vtx[z+2]=lake_quad_vtx[z+2]+wave_amplitude*sin((xPos+zPos)+wave_speed*timer_global);
 			lake_particle_vtx[z+2]=lake_quad_vtx[z+2]+sin((xPos+zPos)+wave_speed*(timer_global-1));
 			lake_col[z]=0;
-			lake_col[z+1]=0.7+0.3*fabs(sin(lake_vtx[z+2]));
-			lake_col[z+2]=0.7+0.3*fabs(sin(lake_vtx[z+2]));
+			lake_col[z+1]=0.5+0.5*fabs(sin(lake_vtx[z+2]));
+			lake_col[z+2]=0.5+0.5*fabs(sin(lake_vtx[z+2]));
 			lake_particle_col[k]=lake_col[z];
 			lake_particle_col[k+1]=lake_col[z+1];
 			lake_particle_col[k+2]=lake_col[z+2];
@@ -1087,7 +1067,7 @@ int DrawGLScene(void) // draw scene
 		glVertexPointer(3, GL_FLOAT, 0, lake_vtx);
 		glPushMatrix();
 		glRotatef(90, 0, 1, 0);
-		glTranslatef(-20, 16, -3);
+		glTranslatef(-20, 16, -8);//x=fwd z=up
 		glScalef(5, 5, 5);
 		glDrawArrays(GL_QUADS, 0, 256);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1159,6 +1139,7 @@ int DrawGLScene(void) // draw scene
 		int frame=27*glenz_frame;
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
+		glTranslatef(cube_y[middle_cube]*4, 0, 0);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
@@ -1170,6 +1151,7 @@ int DrawGLScene(void) // draw scene
 		for (int i=frame+3; i<endFrame; i+=3) {
 			glPushMatrix();
 			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]);
+			glTranslatef(cube_y[middle_cube]*4, 0, 0);
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 			glTexCoordPointer(2, GL_FLOAT, 0, cube_bin_tex);
