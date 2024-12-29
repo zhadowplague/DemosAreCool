@@ -406,6 +406,14 @@ void speed()
 	speed_angle=main_angle;
 }
 
+float lerp(float a, float b, float t) {
+	return a+t*(b-a);
+}
+
+float ilerp(float a, float b, float x) {
+	return (x-a)/(b-a);
+}
+
 void quad(float* vertices, int subdivisions) {
 	//Expected length of vertices array is = subdivisions(width) * subdivisions(height) * 4(verts per quad) * 3(xyz);
 	const float size=10;
@@ -521,6 +529,10 @@ int InitGL(void)
 			{
 				cube_x[k]=x;
 				cube_z[k]=-(cube_n-1)*0.5f+j;
+				float alpha=(j<=2) ? ilerp(0,2,j) : ilerp(7, 5, max(j,5));
+				for (int l=0; l<92; l+=4) {
+					cube_ground_col[k][3]=max(0.25f, alpha);
+				}
 				k++;
 			}
 		}
@@ -968,16 +980,15 @@ int DrawGLScene(void) // draw scene
 			float a=i*cube_ratio;
 			for (int j=0; j<cube_n; j++)
 			{
-				const float b=j*cube_ratio;
-				cube_y[k]=cosf(main_angle*0.5f+b);
-				const float c1=0.5f*cosf(cube_y[k]*4.0f);
-				const float c2=0.5f*sinf(cube_y[k]*4.0f);
-				const float circuit_col[]={ c1,0,c2,c2,c1,0,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,c1,-c2,-c2,0,c2,c1,c1,0,c2 };
-				for (int l=0; l<24; l++) {
-					cube_ground_col[k][l]=circuit_col[l];
-					cube_ground_col[k][l+24]=circuit_col[l];
-					cube_ground_col[k][l+48]=circuit_col[l];
-					cube_ground_col[k][l+72]=j>7||j<1?0:1;
+				const float y=j*cube_ratio;
+				cube_y[k]=cosf(main_angle*0.5f+y);
+				const float r=cosf(cube_y[k]);
+				const float g=sinf(cube_y[k]);
+				const float b=cosf(cube_y[k]+PI);
+				for (int l=0; l<96; l+=4) {
+					cube_ground_col[k][l]=fabs(r);
+					cube_ground_col[k][l+1]=fabs(g);
+					cube_ground_col[k][l+2]=fabs(b);
 				}
 				k++;
 			}
