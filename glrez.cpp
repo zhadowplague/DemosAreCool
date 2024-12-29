@@ -531,7 +531,7 @@ int InitGL(void)
 				cube_z[k]=-(cube_n-1)*0.5f+j;
 				float alpha=(j<=2) ? ilerp(0,2,j) : ilerp(7, 5, max(j,5));
 				for (int l=0; l<92; l+=4) {
-					cube_ground_col[k][3]=max(0.25f, alpha);
+					cube_ground_col[k][l+3]=max(0.25f, alpha);
 				}
 				k++;
 			}
@@ -1005,7 +1005,7 @@ int DrawGLScene(void) // draw scene
 			glRotatef(-90, 0, 0, 1);
 			glScalef(3, 3, 3);
 			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
-			glDrawArrays(GL_QUADS, 0, 20);
+			glDrawArrays(GL_QUADS, 0, 24);
 			glPopMatrix();
 		}
 		glDisableClientState(GL_COLOR_ARRAY);
@@ -1034,6 +1034,7 @@ int DrawGLScene(void) // draw scene
 	//draw intro fog and glenz standing on box
 	if (intro_flag)
 	{
+		glEnable(GL_DEPTH_TEST);
 		glBlendFunc(GL_SRC_COLOR, GL_ONE);
 		glPushMatrix();
 		glTranslatef(-2.5f, 0, 0);
