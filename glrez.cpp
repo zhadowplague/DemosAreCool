@@ -85,17 +85,25 @@ char* txt_hidden2[]={ "- Credits 2 -", "music: bin", "credits-music: OneyNG", nu
 char* txt_hidden3[]={ "Thanks for inspiration", "rez,keops,4mat,coda,bubsy", nullptr };
 char* txt_hidden4[]={ "bye", nullptr };
 char** txt=txt_hidden1;
+/* ground variable				*/
+bool ground_flag=false;		
+const int ground_n=8;
+const int ground_l=ground_n*ground_n;
+const int middle_ground_cube=ground_n/2;
+const float ground_ratio=PID*ground_n;
+float ground_x[ground_l];			
+float ground_y[ground_l];			
+float ground_z[ground_l];			
+float ground_col[ground_l][96]; // colors rgba per cube
+/* falling cube variable				*/
+const int falling_cubes=32;
+int current_falling_cube_i=0;
+float cube_x[falling_cubes];
+float cube_y[falling_cubes];
+float cube_z[falling_cubes];
+float cube_col[falling_cubes][96];
 /* cube variable				*/
-bool cube_flag=false;		// flag
 const int verts_in_cube=72;
-const int cube_n=8;
-const int cube_l=cube_n*cube_n;
-const int middle_cube=cube_n/2;
-float cube_x[cube_l];			// position x
-float cube_y[cube_l];			// position y
-float cube_z[cube_l];			// position z
-float cube_ground_col[cube_l][96];         // colors
-const float cube_ratio=PID*cube_n;// ratio
 float cube_vtx[verts_in_cube]={
 	  // Front face
     -0.5f, -0.5f,  0.5f,  // Bottom-left
@@ -133,7 +141,7 @@ float cube_vtx[verts_in_cube]={
      0.5f, -0.5f, -0.5f,  // Top-right
      0.5f, -0.5f,  0.5f   // Top-left
 };
-float cube_face_tex[48]={
+float cube_face_tex[48]={ //cube uv for face in icon
 	1, 0.4, 1, 1, 0, 1,0, 0.4, //front
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
@@ -141,7 +149,7 @@ float cube_face_tex[48]={
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //
 	1, 0.65f, 1, 0.94f, 0.79, 0.94f,0.79f, 0.65f, //leftside
 };
-float cube_bin_tex[48]={
+float cube_bin_tex[48]={ //cube uv for "bin" in icon
 	0, 0.6, 0, 0, 1, 0,1, 0.6,
 	0, 0.6, 0, 0, 1, 0,1, 0.6,
 	0, 0.6, 0, 0, 1, 0,1, 0.6,
@@ -149,7 +157,6 @@ float cube_bin_tex[48]={
 	0, 0.6, 0, 0, 1, 0,1, 0.6,
 	0, 0.6, 0, 0, 1, 0,1, 0.6,
 };
-float cube_white_col[verts_in_cube];         // cube white vertex colors
 /* sun variable */
 bool sun_flag=false;
 GEOMETRY* cur_geom;
@@ -240,7 +247,8 @@ const int star_n=1280;		// total star number
 float stars[star_n*3];			// star positions xyz
 /* lake variable				*/
 bool lake_flag=false;		// flag
-const int lake_size=768;					
+const int lake_subdiv=8;
+const int lake_size=lake_subdiv*lake_subdiv*4*3;
 float lake_quad_vtx[lake_size];
 float lake_vtx[lake_size];
 float lake_particle_vtx[lake_size];
@@ -265,15 +273,11 @@ float fade_value=0;		// angle
 bool dos_flag=true;// flag
 bool skip_dos=false;
 float dos_time=6.0f;
-/* synchro variable			*/
-bool synchro_flag=false;// flag
-float synchro_angle=0;	// angle
-float synchro_value=0;	// value
-bool sync2_flag=false;	// flag
-float sync2_angle=0;		// angle
-float sync2_value=0;		// value
-float sync2_mul;				// multiplicator
 /* beat variable				*/
+bool beat2_flag=false;	// flag
+float beat2_angle=0;		// angle
+float beat2_value=0;		// value
+unsigned beat2_cntr=0;
 bool beat_flag=false;		// flag
 float beat_angle=0;			// angle
 float beat_value=0;			// value
@@ -385,23 +389,28 @@ void load_tex(WORD file, GLint clamp, GLint mipmap)
 	DestroyIcon(hIcon);
 }
 
-void synchro()
-{
-	synchro_flag=true;
-	synchro_angle=main_angle;
-}
-
-void sync2(float mul)
-{
-	sync2_flag=true;
-	sync2_angle=main_angle;
-	sync2_mul=mul;
-}
-
 void beat()
 {
 	beat_flag=true;
 	beat_angle=main_angle;
+
+	beat2_cntr++;
+	if (beat2_cntr%9u==0) {
+		beat2_flag=true;
+		beat2_angle=main_angle;
+	}
+
+	cube_y[current_falling_cube_i]=10;
+	cube_x[current_falling_cube_i]=rand()%8;
+	cube_z[current_falling_cube_i]=rand()%8;
+	for (int l=0; l<96; l+=4) {
+		cube_col[current_falling_cube_i][l]=0;
+		cube_col[current_falling_cube_i][l+1]=fabs(sinf(cube_x[current_falling_cube_i]));
+		cube_col[current_falling_cube_i][l+2]=fabs(cosf(cube_z[current_falling_cube_i]));
+	}
+	current_falling_cube_i++;
+	if (current_falling_cube_i==falling_cubes)
+		current_falling_cube_i=0;
 }
 
 void speed()
@@ -485,26 +494,22 @@ int InitGL(void)
 		}
 	}
 	//lake
-	quad(lake_vtx, 8);
-	quad(lake_quad_vtx, 8);
-	quad(lake_particle_vtx, 8);
-	//cube
-	for (int i = 0; i < 72; i++)
-	{
-		cube_white_col[i] = 1;
-	}
+	quad(lake_vtx, lake_subdiv);
+	quad(lake_quad_vtx, lake_subdiv);
+	quad(lake_particle_vtx, lake_subdiv);
+	//ground
 	{
 		int k=0;
-		for (int i=0; i<cube_n; i++)
+		for (int i=0; i<ground_n; i++)
 		{
-			float x=-(cube_n-1)*0.5f+i;
-			for (int j=0; j<cube_n; j++)
+			float x=-(ground_n-1)*0.5f+i;
+			for (int j=0; j<ground_n; j++)
 			{
-				cube_x[k]=x;
-				cube_z[k]=-(cube_n-1)*0.5f+j;
+				ground_x[k]=x;
+				ground_z[k]=-(ground_n-1)*0.5f+j;
 				float alpha=(j<=2) ? ilerp(0,2,j) : ilerp(7, 5, max(j,5));
 				for (int l=0; l<92; l+=4) {
-					cube_ground_col[k][l+3]=max(0.25f, alpha);
+					ground_col[k][l+3]=max(0.25f, alpha);
 				}
 				k++;
 			}
@@ -632,8 +637,20 @@ int InitGL(void)
 
 void SyncDrums()
 {
-	if (mod_row % 8 == 0)
-		synchro();
+	switch (mod_row%32)
+	{
+	case 0:
+	case 4:
+	case 8:
+	case 10:
+	case 14:
+	case 18:
+	case 22:
+	case 24:
+	case 31:
+		beat();
+		break;
+	}
 }
 
 float SmoothDamp(float current, float target, float& currentVelocity, float smoothTime, float deltaTime) {
@@ -661,6 +678,7 @@ void IntroSync()
 	case 0:
 	case 2:
 	case 4:
+	case 6:
 	case 12:
 	case 14:
 	case 16:
@@ -670,8 +688,6 @@ void IntroSync()
 	case 28:
 	case 30:
 		intro_i--; break;
-	case  3: synchro(); break;
-	case  6: intro_i--; synchro(); break;
 	}
 }
 
@@ -728,11 +744,6 @@ int DrawGLScene(void) // draw scene
 					timer_music=timer_global;
 					mod_ord=FMUSIC_GetOrder(mod);
 				}
-				if (((mod_ord>7&&mod_ord<16)||(mod_ord>17&&mod_ord<24&&mod_ord!=21))&&(mod_row%16==8||mod_row==52)) synchro();
-				if ((mod_ord==16||mod_ord==17)&&(mod_row==52)) synchro();
-				if ((mod_ord==21)&&(mod_row==8||mod_row==24||mod_row==56)) synchro();
-				if ((mod_ord>27&&mod_ord<32)&&(mod_row%8==0)) sync2(1.75f);
-				if ((is_looping)&&(mod_row%16==0)) beat();
 				if ((mod_ord>3&&mod_ord<7)&&mod_row%4==0) glenz_frame=(glenz_frame==0 ? 1 : 0);
 				switch (mod_ord)
 				{
@@ -741,7 +752,7 @@ int DrawGLScene(void) // draw scene
 						is_looping=loop_counter>0;
 						intro_flag=true;
 						stars_flag=true;
-						cube_flag=false;
+						ground_flag=false;
 						sun_flag=false;
 						glenz_frame=2;
 						intro_i=intro_n;
@@ -768,7 +779,7 @@ int DrawGLScene(void) // draw scene
 						stars_flag=false;
 						sun_flag=true;
 						lake_flag=true;
-						cube_flag=true;
+						ground_flag=true;
 						intro_flag=false;
 						speed_flag=false;
 						speed_value=1.0f;
@@ -806,9 +817,9 @@ int DrawGLScene(void) // draw scene
 				case 7:
 					if (mod_row==0)
 					{
-						cube_y[middle_cube]=0;
+						ground_y[middle_ground_cube]=0;
 						horizon_flag=false;
-						cube_flag=false;
+						ground_flag=false;
 						speed_flag=false;
 						lake_flag=false;
 						stars_flag=true;
@@ -858,7 +869,6 @@ int DrawGLScene(void) // draw scene
 				}
 				if (mod_row==126&&mod_ord==5)
 					done=true;
-				if (mod_row%8==4) synchro();
 			}
 		}
 		if (!hidden_flag) {
@@ -892,24 +902,14 @@ int DrawGLScene(void) // draw scene
 			camera_current_x=-3;
 		}
 	}
-	if (synchro_flag)
+	if (beat2_flag)
 	{
-		float angle=(main_angle-synchro_angle)*2.0f;
-		synchro_value=1.0f-sinf(angle);
+		float angle=(main_angle-beat2_angle)*1.5f;
+		beat2_value=1.0f-sinf(angle);
 		if (angle>90.0f*PID)
 		{
-			synchro_value=0;
-			synchro_flag=false;
-		}
-	}
-	if (sync2_flag)
-	{
-		float angle=(main_angle-sync2_angle)*sync2_mul;
-		sync2_value=1.0f-sinf(angle);
-		if (angle>90.0f*PID)
-		{
-			sync2_value=0;
-			sync2_flag=false;
+			beat2_value=0;
+			beat2_flag=false;
 		}
 	}
 	if (beat_flag)
@@ -945,27 +945,27 @@ int DrawGLScene(void) // draw scene
 	glEnable(GL_DEPTH_TEST);
 
 	// draw ground
-	if (cube_flag)
+	if (ground_flag)
 	{
 		const float radius=0.2*cosf(main_angle*0.25f);
 		int k=0;
-		for (int i=0; i<cube_n; i++)
+		for (int i=0; i<ground_n; i++)
 		{
-			const float x=i*cube_ratio;
-			for (int j=0; j<cube_n; j++)
+			const float x=i*ground_ratio;
+			for (int j=0; j<ground_n; j++)
 			{
-				const float y=j*cube_ratio;
+				const float y=j*ground_ratio;
 				const float wave=cosf(main_angle*0.5f+y)+sinf(x);
-				cube_y[k]=0.5*wave;
+				ground_y[k]=0.5*wave;
 
 				const float n=noise.noise(x, y);
 				const float r=n*wave;
 				const float g=n*sinf(wave);
 				const float b=n*cosf(wave+PI);
 				for (int l=0; l<96; l+=4) {
-					cube_ground_col[k][l]=fabs(r);
-					cube_ground_col[k][l+1]=fabs(g);
-					cube_ground_col[k][l+2]=fabs(b);
+					ground_col[k][l]=fabs(r);
+					ground_col[k][l+1]=fabs(g);
+					ground_col[k][l+2]=fabs(b);
 				}
 				k++;
 			}
@@ -976,14 +976,34 @@ int DrawGLScene(void) // draw scene
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 		for (int i=0; i<k; i++)
 		{
-			glColorPointer(4, GL_FLOAT, 0, cube_ground_col[i]);
+			glColorPointer(4, GL_FLOAT, 0, ground_col[i]);
 			glPushMatrix();//x=up y=right
 			glTranslatef(-5, 0, 0);
 			glRotatef(-90, 0, 0, 1);
 			glScalef(4, 4, 4);
-			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
+			glTranslatef(ground_x[i], ground_y[i], ground_z[i]);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glPopMatrix();
+		}
+
+		float savedMatrix[16];
+		for (int i=0; i<falling_cubes; i++) 
+		{
+			glColorPointer(4, GL_FLOAT, 0, cube_col[i]);
+			glPushMatrix();//x=up y=right
+			glScalef(4, 4, 4);
+			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
+			glGetFloatv(GL_MODELVIEW_MATRIX, savedMatrix);
+			glPopMatrix();
+			glPushMatrix();
+			glRotatef(i*main_angle, 0, 0, 1);
+			glMultMatrixf(savedMatrix);
+			glDrawArrays(GL_QUADS, 0, 24);
+			glPopMatrix();
+			cube_y[i]-=timer_delta;
+			for (int l=0; l<96; l+=4) {
+				cube_col[current_falling_cube_i][l+3]=max(0, ilerp(-10, 10, cube_y[i]));
+			}
 		}
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
@@ -1091,7 +1111,7 @@ int DrawGLScene(void) // draw scene
 			for (int j=0; j<horizon_n; j++)
 			{
 				float angle2=1080.0f*PID/horizon_n*j+a2;
-				float z=sync2_value*2.0f*(rand()%100)/200.0f*cosf((main_angle-sync2_angle)*horizon_v);
+				float z=beat2_value*2.0f*(rand()%100)/200.0f*cosf((main_angle-beat2_angle)*horizon_v);
 				z1=z2;
 				z2=(float)fabs(angle+horizon_radius*sinf(angle2))+z;
 				if (z2<0.5f) z2=0.5f;
@@ -1135,15 +1155,14 @@ int DrawGLScene(void) // draw scene
 	{
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_DEPTH_TEST);
-		glEnableClientState(GL_COLOR_ARRAY);
+		glColor3f(1, 1, 1);
 		int frame=27*glenz_frame;
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
-		glTranslatef(cube_y[middle_cube]*4, 0, 0);
+		glTranslatef(ground_y[middle_ground_cube]*4, 0, 0);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
-		glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 		glDrawArrays(GL_QUADS, 0, 24);
 		glPopMatrix();
 
@@ -1151,15 +1170,13 @@ int DrawGLScene(void) // draw scene
 		for (int i=frame+3; i<endFrame; i+=3) {
 			glPushMatrix();
 			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]);
-			glTranslatef(cube_y[middle_cube]*4, 0, 0);
+			glTranslatef(ground_y[middle_ground_cube]*4, 0, 0);
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 			glTexCoordPointer(2, GL_FLOAT, 0, cube_bin_tex);
-			glColorPointer(3, GL_FLOAT, 0, cube_white_col);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glPopMatrix();
 		}
-		glDisableClientState(GL_COLOR_ARRAY);
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_DEPTH_TEST);
 	}
@@ -1489,7 +1506,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			if (keys[VK_F12])
 			{
 				intro_flag=false;
-				cube_flag=false;
+				ground_flag=false;
 				speed_flag=false;
 				stars_flag=true;
 				lake_flag=false;
