@@ -400,13 +400,14 @@ void beat()
 		beat2_angle=main_angle;
 	}
 
-	cube_y[current_falling_cube_i]=10;
-	cube_x[current_falling_cube_i]=rand()%8;
-	cube_z[current_falling_cube_i]=rand()%8;
+	cube_y[current_falling_cube_i]=15;
+	float radius=rand()%6+8;
+	cube_x[current_falling_cube_i]=radius*cosf(rand());
+	cube_z[current_falling_cube_i]=radius*sinf(rand());
 	for (int l=0; l<96; l+=4) {
 		cube_col[current_falling_cube_i][l]=0;
-		cube_col[current_falling_cube_i][l+1]=fabs(sinf(cube_x[current_falling_cube_i]));
-		cube_col[current_falling_cube_i][l+2]=fabs(cosf(cube_z[current_falling_cube_i]));
+		cube_col[current_falling_cube_i][l+1]=fabs(cube_x[current_falling_cube_i]);
+		cube_col[current_falling_cube_i][l+2]=fabs(cube_z[current_falling_cube_i]);
 	}
 	current_falling_cube_i++;
 	if (current_falling_cube_i==falling_cubes)
@@ -986,23 +987,19 @@ int DrawGLScene(void) // draw scene
 			glPopMatrix();
 		}
 
-		float savedMatrix[16];
+		glDisable(GL_BLEND);
 		for (int i=0; i<falling_cubes; i++) 
 		{
 			glColorPointer(4, GL_FLOAT, 0, cube_col[i]);
 			glPushMatrix();//x=up y=right
-			glScalef(4, 4, 4);
-			glTranslatef(cube_x[i], cube_y[i], cube_z[i]);
-			glGetFloatv(GL_MODELVIEW_MATRIX, savedMatrix);
-			glPopMatrix();
-			glPushMatrix();
-			glRotatef(i*main_angle, 0, 0, 1);
-			glMultMatrixf(savedMatrix);
+			glTranslatef(cube_y[i], cube_x[i], cube_z[i]);
+			glRotatef(timer_global*100, 1, 1, 0);
+			glScalef(2, 2, 2);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glPopMatrix();
-			cube_y[i]-=timer_delta;
+			cube_y[i]-=timer_delta*25;
 			for (int l=0; l<96; l+=4) {
-				cube_col[current_falling_cube_i][l+3]=max(0, ilerp(-10, 10, cube_y[i]));
+				cube_col[current_falling_cube_i][l+3]=cube_y[i]>0?1:0;
 			}
 		}
 		glDisableClientState(GL_COLOR_ARRAY);
@@ -1019,12 +1016,12 @@ int DrawGLScene(void) // draw scene
 		UpdatePts(cur_geom, sf);
 
 		float c=stars_flag ? 1 : 0.5f;
-		glColor3f(1, c, c);
+		glColor3f(1, 1, c);
 		glDisable(GL_FOG);
 		glDisable(GL_DEPTH_TEST);
 		glPushMatrix();//x=up y=right
 		glTranslatef(8, 16, 0);
-		glRotatef(timer_global, 1, 1, 0);
+		glRotatef(timer_global*100, 1, 1, 0);
 		glScalef(4, 4, 4);
 		DrawGeom(cur_geom);
 		glPopMatrix();
