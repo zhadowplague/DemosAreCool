@@ -37,33 +37,10 @@ typedef struct _PLANE_MAP
 PT3 pts[MAXPTS], npts[MAXPTS];
 // Scaling factor for spherical projection
 FLT vlen[MAXPTS];
-// Normals
-PT3 normals[MAXPTS];
 // Vertex data indices
 int index[MAXPTS * 2];
 // Triangle strip sizes
 int strip_size[MAXSIDES * MAXSUBDIV];
-
-void InitCube(GEOMETRY* geom);
-void InitTetra(GEOMETRY* geom);
-void InitPyramids(GEOMETRY* geom);
-void InitCylinder(GEOMETRY* geom);
-void InitSpring(GEOMETRY* geom);
-
-GEOMETRY cube_geom = { InitCube };
-GEOMETRY tetra_geom = { InitTetra };
-GEOMETRY pyramids_geom = { InitPyramids };
-GEOMETRY cylinder_geom = { InitCylinder };
-GEOMETRY spring_geom = { InitSpring };
-
-GEOMETRY* geom_table[] =
-{
-	&cube_geom,
-	&tetra_geom,
-	&pyramids_geom,
-	&cylinder_geom,
-	&spring_geom
-};
 
 /******************************Public*Routine******************************\
 *
@@ -158,7 +135,6 @@ void InitCube(GEOMETRY* geom)
 	geom->nsides = CUBE_SIDES;
 	geom->pts = &pts[0];
 	geom->npts = &npts[0];
-	geom->normals = &normals[0];
 
 	geom->min_sf = -1.1f;
 	geom->max_sf = 5.1f;
@@ -259,7 +235,6 @@ void InitTetra(GEOMETRY* geom)
 	geom->nsides = TETRA_SIDES;
 	geom->pts = &pts[0];
 	geom->npts = &npts[0];
-	geom->normals = &normals[0];
 
 	geom->min_sf = -1.1f;
 	geom->max_sf = 5.2f;
@@ -356,7 +331,6 @@ void InitPyramids(GEOMETRY* geom)
 	geom->nsides = PYRAMIDS_SIDES;
 	geom->pts = &pts[0];
 	geom->npts = &npts[0];
-	geom->normals = &normals[0];
 
 	geom->min_sf = -1.1f;
 	geom->max_sf = 5.2f;
@@ -434,7 +408,6 @@ void InitCylinder(GEOMETRY* geom)
 	geom->nsides = 1;
 	geom->pts = &pts[0];
 	geom->npts = &npts[0];
-	geom->normals = &normals[0];
 
 	geom->min_sf = -2.5f;
 	geom->max_sf = 8.5f;
@@ -519,7 +492,6 @@ void InitSpring(GEOMETRY* geom)
 	geom->nsides = 1;
 	geom->pts = &pts[0];
 	geom->npts = &npts[0];
-	geom->normals = &normals[0];
 
 	geom->min_sf = -2.2f;
 	geom->max_sf = 0.2f;
@@ -610,73 +582,11 @@ void DrawGeom(GEOMETRY* geom)
 			glBegin(GL_TRIANGLE_STRIP);
 			for (idc = 0; idc < geom->sides[side].strip_size[strip]; idc++) {
 				idxv = *idx++;
-				glNormal3fv((GLfloat*)&geom->normals[idxv]);
 				glVertex3fv((GLfloat*)&geom->npts[idxv]);
 			}
 			glEnd();
 		}
 	}
-}
-
-/******************************Public*Routine******************************\
-*
-* ComputeAveragedNormals
-*
-* Compute face-averaged normals for each vertex
-*
-* History:
-*  Wed Jul 19 14:53:13 1995	-by-	Drew Bliss [drewb]
-*   Created
-*
-\**************************************************************************/
-
-void ComputeAveragedNormals(GEOMETRY* geom)
-{
-	int side, strip;
-	int* sz;
-	int* idx, idx1, idx2, idx3;
-	int tc, idc;
-	PT3 v1, v2, n1;
-
-	memset(geom->normals, 0, sizeof(PT3) * geom->total_pts);
-
-	for (side = 0; side < geom->nsides; side++)
-	{
-		idx = (int*)geom->sides[side].strip_index;
-		sz = geom->sides[side].strip_size;
-		for (strip = 0; strip < geom->sides[side].nstrips; strip++)
-		{
-			idx1 = *idx++;
-			idx2 = *idx++;
-
-			tc = (*sz++) - 2;
-			for (idc = 0; idc < tc; idc++)
-			{
-				idx3 = *idx++;
-
-				V3Sub(&geom->npts[idx3], &geom->npts[idx1], &v1);
-				V3Sub(&geom->npts[idx2], &geom->npts[idx1], &v2);
-				V3Cross(&v1, &v2, &n1);
-				// Triangle strip ordering causes half of the triangles
-				// to be oriented oppositely from the others
-				// Those triangles need to have their normals flipped
-				// so the whole triangle strip has consistent normals
-				if ((idc & 1) == 0)
-				{
-					n1.x = -n1.x;
-					n1.y = -n1.y;
-					n1.z = -n1.z;
-			}
-
-				V3Add(&geom->normals[idx1], &n1, &geom->normals[idx1]);
-				V3Add(&geom->normals[idx2], &n1, &geom->normals[idx2]);
-				V3Add(&geom->normals[idx3], &n1, &geom->normals[idx3]);
-
-				idx1 = idx2;
-				idx2 = idx3;
-		}
-	}
-}
 }
 
 /******************************Public*Routine******************************\
@@ -710,7 +620,5 @@ void UpdatePts(GEOMETRY* geom, FLT sf)
 		p++;
 		v++;
 	}
-
-	ComputeAveragedNormals(geom);
 }
 

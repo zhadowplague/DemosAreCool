@@ -159,7 +159,7 @@ float cube_bin_tex[48]={ //cube uv for "bin" in icon
 };
 /* sun variable */
 bool sun_flag=false;
-GEOMETRY* cur_geom;
+GEOMETRY cur_geom;
 Noise noise;
 float sf;
 float sfi;
@@ -434,12 +434,11 @@ void rectangle(int x, int y, int w, int h)
 int InitGL(void)
 {
 	// Reset geometry
-	cur_geom = geom_table[2];
-	cur_geom->init(cur_geom);
-	InitVlen(cur_geom, cur_geom->total_pts, cur_geom->pts);
+	InitPyramids(&cur_geom);
+	InitVlen(&cur_geom, cur_geom.total_pts, cur_geom.pts);
 	sf=0.0f;
-	sfi=cur_geom->sf_inc;
-	UpdatePts(cur_geom, sf);
+	sfi=cur_geom.sf_inc;
+	UpdatePts(&cur_geom, sf);
 	glClearDepth(1.0f);								// set depth buffer
 	glDepthMask(GL_TRUE);							// do not write z-buffer
 	glEnable(GL_CULL_FACE);						// disable cull face
@@ -1008,12 +1007,12 @@ int DrawGLScene(void) // draw scene
 	if (sun_flag) 
 	{
 		sf += sfi * timer_delta * 50;
-		if (sf > cur_geom->max_sf ||
-			sf < cur_geom->min_sf)
+		if (sf > cur_geom.max_sf ||
+			sf < cur_geom.min_sf)
 		{
 			sfi = -sfi;
 		}
-		UpdatePts(cur_geom, sf);
+		UpdatePts(&cur_geom, sf);
 
 		float c=stars_flag ? 1 : 0.5f;
 		glColor3f(1, 1, c);
@@ -1023,7 +1022,7 @@ int DrawGLScene(void) // draw scene
 		glTranslatef(8, 16, 0);
 		glRotatef(timer_global*100, 1, 1, 0);
 		glScalef(4, 4, 4);
-		DrawGeom(cur_geom);
+		DrawGeom(&cur_geom);
 		glPopMatrix();
 	}
 	//draw intro fog and glenz standing on box

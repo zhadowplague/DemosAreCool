@@ -58,8 +58,6 @@ typedef struct _SIDE
 
 typedef struct _GEOMETRY
 {
-    void (*init)(struct _GEOMETRY* geom);
-
     // Number of sides
     int nsides;
     // Sides
@@ -67,7 +65,6 @@ typedef struct _GEOMETRY
 
     // Data for each vertex in the shape
     PT3* pts, * npts;
-    PT3* normals;
 
     // Total number of vertices
     int total_pts;
@@ -80,12 +77,7 @@ typedef struct _GEOMETRY
 
 } GEOMETRY;
 
-#define GEOM_CUBE       0
-#define GEOM_TETRA      1
-#define GEOM_PYRAMIDS   2
-
-extern GEOMETRY* geom_table[];
-
+void InitPyramids(GEOMETRY* geom);
 void InitVlen(GEOMETRY* geom, int npts, PT3* pts);
 void UpdatePts(GEOMETRY* geom, FLT sf);
 void DrawGeom(GEOMETRY* geom);
