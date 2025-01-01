@@ -14,6 +14,10 @@
 #define PID PI/180.0f			// pi ratio
 #define CR 1.0f/256.0f		// color ratio
 
+#ifndef _DEBUG
+#define _DEBUG 0
+#endif // !_DEBUG
+
 Timer* timer;
 float timer_global=0;
 float timer_global_previous=0;
@@ -71,7 +75,7 @@ float camera_smooth=0;
 /* color/fogvariable				*/
 const float initial_r=0.4f;
 const float initial_g=0.4f;
-const float initial_b=0.2f;
+const float initial_b=0.5f;
 float fog_color[]={ initial_r,initial_g,initial_b,1.0f };	// fog color definition
 /* text variable				*/
 char* name="Bin - Demos are cool";
@@ -165,7 +169,6 @@ float sf;
 float sfi;
 /* glenz variable */
 bool glenz_flag=true;
-bool jump_flag=false;
 int glenz_frame=0;
 int glenz_scale_frame=0;
 const int glenz_n=81;
@@ -691,22 +694,6 @@ void IntroSync()
 	}
 }
 
-void MakeBillboard()
-{
-	float modelview[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
-	modelview[0]=1.0f;
-	modelview[1]=0.0f;
-	modelview[2]=0.0f;
-	modelview[4]=0.0f;
-	modelview[5]=1.0f;
-	modelview[6]=0.0f;
-	modelview[8]=0.0f;
-	modelview[9]=0.0f;
-	modelview[10]=1.0f;
-	glLoadMatrixf(modelview);
-}
-
 int DrawGLScene(void) // draw scene
 {
 	// synchro
@@ -744,7 +731,8 @@ int DrawGLScene(void) // draw scene
 					timer_music=timer_global;
 					mod_ord=FMUSIC_GetOrder(mod);
 				}
-				if ((mod_ord>3&&mod_ord<7)&&mod_row%4==0) glenz_frame=(glenz_frame==0 ? 1 : 0);
+				if ((mod_ord>3&&mod_ord<7)&&mod_row%4==0) 
+					glenz_frame=(glenz_frame==0 ? 1 : 0);
 				switch (mod_ord)
 				{
 				case 0:
@@ -996,7 +984,7 @@ int DrawGLScene(void) // draw scene
 			glScalef(2, 2, 2);
 			glDrawArrays(GL_QUADS, 0, 24);
 			glPopMatrix();
-			cube_y[i]-=timer_delta*25;
+			cube_y[i]-=timer_delta*50;
 			for (int l=0; l<96; l+=4) {
 				cube_col[current_falling_cube_i][l+3]=cube_y[i]>0?1:0;
 			}
@@ -1153,9 +1141,10 @@ int DrawGLScene(void) // draw scene
 		glEnable(GL_DEPTH_TEST);
 		glColor3f(1, 1, 1);
 		int frame=27*glenz_frame;
+		float bounce=ground_y[middle_ground_cube]*4+(ground_flag ? 0.2*fabs(sinf(glenz_frame+timer_global*5)) : 0);
 		glPushMatrix();
 		glTranslatef(glenz_pos[0+frame], glenz_pos[1+frame], glenz_pos[2+frame]);
-		glTranslatef(ground_y[middle_ground_cube]*4, 0, 0);
+		glTranslatef(bounce, 0, 0);
 		glScalef(glenz_scale[0+frame], glenz_scale[1+frame], glenz_scale[2+frame]);
 		glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, cube_face_tex);
@@ -1166,7 +1155,7 @@ int DrawGLScene(void) // draw scene
 		for (int i=frame+3; i<endFrame; i+=3) {
 			glPushMatrix();
 			glTranslatef(glenz_pos[i], glenz_pos[i+1], glenz_pos[i+2]);
-			glTranslatef(ground_y[middle_ground_cube]*4, 0, 0);
+			glTranslatef(bounce, 0, 0);
 			glScalef(glenz_scale[i], glenz_scale[i+1], glenz_scale[i+2]);
 			glVertexPointer(3, GL_FLOAT, 0, cube_vtx);
 			glTexCoordPointer(2, GL_FLOAT, 0, cube_bin_tex);
@@ -1448,7 +1437,7 @@ LRESULT CALLBACK WndProc(HWND	hWnd, UINT	uMsg, WPARAM	wParam, LPARAM	lParam)
 }
 
 // instance,previous instance,command line parameters,window show state
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
 	MSG msg;																		// windows message structure
 	// create openGL window
@@ -1476,11 +1465,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			// draw the scene, watch for escape key and quit message from DrawGLScene()
 			if ((active&&!DrawGLScene())||keys[VK_ESCAPE]) done=true; else SwapBuffers(hDC);	// exit or swap buffers
-			if (keys[VK_SPACE])
-			{
-				jump_flag=true;
-				keys[VK_SPACE]=false;
-			}
 			if (keys[VK_F2])
 			{
 				polygon=!polygon;
