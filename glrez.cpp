@@ -84,10 +84,12 @@ char* txt_dos2="F11: fullscreen/windowed";
 char* txt_dos3="F12: credits";
 char* txt_loop="Looping";
 
-char* txt_hidden1[]={ "- Credits 1 -", "code: rez", "code: bin", "code: drewb", nullptr};
-char* txt_hidden2[]={ "- Credits 2 -", "music: bin", "credits-music: OneyNG", nullptr };
-char* txt_hidden3[]={ "Thanks for inspiration", "rez,keops,4mat,coda,bubsy", nullptr };
-char* txt_hidden4[]={ "bye", nullptr };
+char* txt_hidden1[]={ "- Put togheter by -", "zhadowplague/bin", nullptr};
+char* txt_hidden2[]={ "- Music by -", "main-music: bin", "credits-music: OneyNG", nullptr };
+char* txt_hidden3[]={ "- Uses code by -", "drewb,rez,keops", nullptr};
+char* txt_hidden4[]={ "- Github repo name -", "DemosAreCool", nullptr};
+char* txt_hidden5[]={ "- And thank YOU -", "for watching", nullptr};
+char* txt_hidden6[]={ "bye", nullptr };
 char** txt=txt_hidden1;
 /* ground variable				*/
 bool ground_flag=false;		
@@ -849,11 +851,13 @@ int DrawGLScene(void) // draw scene
 						case 0: txt=txt_hidden1; break;
 						case 2: txt=txt_hidden2; break;
 						case 3: txt=txt_hidden3; break;
+						case 4: txt=txt_hidden4; break;
+						case 5: txt=txt_hidden5; break;
 						}
 					}
 				}
 				if (mod_row==96&&mod_ord==5) {
-					txt=txt_hidden4;
+					txt=txt_hidden6;
 				}
 				if (mod_row==126&&mod_ord==5)
 					done=true;
